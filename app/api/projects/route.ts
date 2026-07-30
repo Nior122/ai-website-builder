@@ -8,7 +8,7 @@
 // All Project FK references use User.id (cuid), NOT User.clerkId (user_xxx).
 // =============================================================================
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma/client';
@@ -20,9 +20,6 @@ import { logAuditEntry } from '@/features/admin/services/audit.service';
 
 const LOG = { route: '/api/projects' } as const;
 
-/**
- * Resolve Clerk user ID to database User.id.
- */
 async function resolveDbUserId(clerkUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { clerkId: clerkUserId },
@@ -32,9 +29,6 @@ async function resolveDbUserId(clerkUserId: string): Promise<string> {
   return user.id;
 }
 
-/**
- * Generate a URL-safe slug from project name.
- */
 function generateProjectSlug(name: string): string {
   return name
     .toLowerCase()
@@ -43,7 +37,6 @@ function generateProjectSlug(name: string): string {
     .slice(0, 100);
 }
 
-// ─── POST /api/projects ─────────────────────────────────────────────────────
 const createSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
@@ -61,7 +54,6 @@ export const POST = withRequestLogging(
 
       const dbUserId = await resolveDbUserId(userId);
 
-      // Check plan limits
       const { allowed, current, limit } = await checkPlanLimits(dbUserId, 'projects');
       if (!allowed) {
         return badRequest(`Project limit reached (${current}/${limit}). Upgrade your plan to create more.`);
@@ -70,8 +62,7 @@ export const POST = withRequestLogging(
       const body = await request.json();
       const validated = createSchema.parse(body);
 
-      // Deduplicate slug: append -2, -3, etc. if slug already exists for this owner
-      let baseSlug = generateProjectSlug(validated.name);
+      const baseSlug = generateProjectSlug(validated.name);
       let slug = baseSlug;
       let slugCounter = 2;
       while (true) {
@@ -86,26 +77,20 @@ export const POST = withRequestLogging(
 
       const project = await prisma.project.create({
         data: {
-          name: validated.name,
-          slug,
+          name: validated.name, slug,
           description: validated.description,
           industry: validated.industry,
           businessType: validated.businessType || 'other',
           ownerId: dbUserId,
           organizationId: validated.organizationId,
           templateId: validated.templateId,
-          settings: {},
-          globalStyles: {},
-          seo: {},
+          settings: {}, globalStyles: {}, seo: {},
         },
       });
 
-      // Audit log (fire-and-forget)
       logAuditEntry({
-        userId: dbUserId,
-        action: 'project.create',
-        resource: 'project',
-        resourceId: project.id,
+        userId: dbUserId, action: 'project.create',
+        resource: 'project', resourceId: project.id,
         newValues: { name: validated.name, industry: validated.industry },
       }).catch(() => {});
 
@@ -119,24 +104,17 @@ export const POST = withRequestLogging(
   }, { tier: 'free' })
 );
 
-// ─── GET /api/projects ──────────────────────────────────────────────────────
 export const GET = withRequestLogging(
   withRateLimit(async (request: NextRequest) => {
     try {
       const { userId } = await auth();
       if (!userId) return unauthorized();
-
       const dbUserId = await resolveDbUserId(userId);
-
       const projects = await prisma.project.findMany({
         where: { ownerId: dbUserId, status: { not: 'archived' } },
-        include: {
-          pages: { select: { id: true } },
-          _count: { select: { pages: true } },
-        },
+        include: { pages: { select: { id: true } }, _count: { select: { pages: true } } },
         orderBy: { updatedAt: 'desc' },
       });
-
       return ok(projects);
     } catch (err) {
       return errorResponse(err instanceof Error ? err : new Error(String(err)));

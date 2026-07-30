@@ -15,7 +15,7 @@ export function safeValidate<T>(schema: ZodType<T>, data: unknown, options: { de
   if (result1.success) return { success: true, data: result1.data, repairsApplied: 0, repairedPaths: [], defaultsApplied: 0, defaultPaths: [] };
   const issues = extractIssues(result1.error);
   if (verbose) logger.warn(`Safe validation: Initial parse failed with ${issues.length} issues`, { ...LOG, issues: issues.slice(0,5) });
-  let repairedData = attemptRepair(data, issues, options.defaultBasePath);
+  const repairedData = attemptRepair(data, issues, options.defaultBasePath);
   const result2 = schema.safeParse(repairedData);
   if (result2.success) { const a = countDifferences(data, repairedData); if (verbose) logger.info(`Safe validation: Repair succeeded — ${a} fields fixed`, LOG); return { success: true, data: result2.data, repairsApplied: a, repairedPaths: getChangedPaths(data, repairedData), defaultsApplied: 0, defaultPaths: [] }; }
   const issues2 = extractIssues(result2.error);
@@ -42,7 +42,6 @@ function attemptRepair(data: unknown, issues: Array<{ path: string; message: str
   }
   return changed ? result : data;
 }
-
 function injectDefaults(data: unknown, issues: Array<{ path: string; message: string; code: string }>, defaultBasePath?: string): unknown {
   if (typeof data !== 'object' || data === null) return data ?? {};
   const result = JSON.parse(JSON.stringify(data)) as Record<string, unknown>; let changed = false;
@@ -51,14 +50,12 @@ function injectDefaults(data: unknown, issues: Array<{ path: string; message: st
   for (const {p,k} of arrayDefaults) { const pp = p.split('.'); const c = getNested(result, pp.slice(0,-1)); if (c && typeof c === 'object' && !Array.isArray(c)) { if (!(k in c) || (c as any)[k] === null || (c as any)[k] === undefined) { (c as Record<string, unknown>)[k] = []; changed = true; } } }
   return changed ? result : data;
 }
-
 function extractIssues(error: ZodError) { return error.issues.map(i => ({ path: i.path.join('.'), message: i.message, code: i.code })); }
 function getNested(obj: Record<string, unknown>, path: string[]): unknown { let c: unknown = obj; for (const k of path) { if (c && typeof c === 'object' && k in (c as Record<string, unknown>)) c = (c as Record<string, unknown>)[k]; else return undefined; } return c; }
 function setNested(obj: Record<string, unknown>, path: string[], value: unknown): void { let c: Record<string, unknown> = obj; for (let i = 0; i < path.length - 1; i++) { const k = path[i]; if (!(k in c) || c[k] === null || typeof c[k] !== 'object') c[k] = {}; c = c[k] as Record<string, unknown>; } if (path.length > 0) c[path[path.length-1]] = value; }
 function countDifferences(original: unknown, modified: unknown): number { if (original === modified) return 0; try { return JSON.stringify(original) === JSON.stringify(modified) ? 0 : 1; } catch { return 1; } }
 function getChangedPaths(original: unknown, modified: unknown): string[] { if (original === modified) return []; try { const paths: string[] = []; walkDiff(original, modified, '', paths); return paths; } catch { return ['<unknown>']; } }
 function walkDiff(orig: unknown, mod: unknown, path: string, paths: string[]): void { if (orig === mod) return; if (typeof orig !== typeof mod) { paths.push(path || '<root>'); return; } if (typeof orig !== 'object' || orig === null || mod === null) { paths.push(path || '<root>'); return; } if (Array.isArray(orig) && Array.isArray(mod)) { if (orig.length !== mod.length) paths.push(path || '<root>'); return; } const o = orig as Record<string, unknown>; const m = mod as Record<string, unknown>; const keys = new Set([...Object.keys(o), ...Object.keys(m)]); for (const k of keys) { const np = path ? `${path}.${k}` : k; if (!(k in o) || !(k in m)) paths.push(np); else walkDiff(o[k], m[k], np, paths); } }
-
 export function withDefaults<T>(schema: ZodType<T>, defaultBasePath?: string): { parse: (data: unknown) => T; safeParse: (data: unknown) => SafeValidationResult<T> } {
   return { parse: (data: unknown): T => { const r = safeValidate(schema, data, { defaultBasePath }); if (!r.success) throw new Error(r.error || 'Validation failed'); return r.data as T; }, safeParse: (data: unknown) => safeValidate(schema, data, { defaultBasePath }) };
 }

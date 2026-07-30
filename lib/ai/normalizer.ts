@@ -254,7 +254,7 @@ function repairJSON(text: string): string {
  */
 export function safeJSONParse(text: string): { success: true; data: unknown } | { success: false; error: string; raw: string } {
   // Step 1: Extract JSON from surrounding text
-  let cleaned = extractJSONFromText(text);
+  const cleaned = extractJSONFromText(text);
 
   // Step 2: Try direct parse first
   try {

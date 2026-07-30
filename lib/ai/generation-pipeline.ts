@@ -20,7 +20,7 @@ export async function runGenerationPipeline(request: GenerateRequest, options: P
   const stageLogs: StageLog[] = []; const startTime = Date.now(); const mm = getModelManager(); const aiCtx: AIErrorContext = { requestId: options.requestId, userId: options.dbUserId, projectId: options.projectId };
   const totalPages = request.pages?.length || 5;
   let brand: Record<string, unknown> | null = null; let theme: Record<string, unknown> | null = null;
-  let pagesOutput: Array<Record<string, unknown>> | null = null; let sectionsByPage: Map<string, Array<Record<string, unknown>>> = new Map();
+  let pagesOutput: Array<Record<string, unknown>> | null = null; const sectionsByPage: Map<string, Array<Record<string, unknown>>> = new Map();
   let seo: Record<string, unknown> | null = null; let images: Array<Record<string, unknown>> | null = null;
   try {
     emit(options, { phase: 'generating', message: 'Defining brand identity...', progress: 10, pagesGenerated: 0, totalPages, currentSection: null }); logStageStart('brand');
