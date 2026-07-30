@@ -68,16 +68,16 @@ export function patchSection(
 
   if (patches.content) {
     updated.content = deepMerge(
-      section.content as Record<string, unknown>,
-      patches.content as Record<string, unknown>
+      section.content,
+      patches.content
     );
   }
 
   if (patches.styles) {
-    updated.styles = deepMerge(
-      (section.styles || {}) as Record<string, unknown>,
-      patches.styles as Record<string, unknown>
-    ) as unknown as SectionStyles;
+    updated.styles = deepMerge<SectionStyles>(
+      section.styles ?? ({} as SectionStyles),
+      patches.styles
+    );
   }
 
   if (patches.layout !== undefined) {
@@ -245,6 +245,7 @@ export function moveSection(
     sections: reorderSections(page.sections, fromIndex, toIndex),
   };
 }
+
 // ─── Content Path Access ────────────────────────────────────────────────
 
 /**
@@ -309,11 +310,9 @@ export function addContentArrayItem<T>(
   arrayPath: string,
   item: T
 ): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) {
-    return setSectionContent(section, arrayPath, [item]);
-  }
-  return setSectionContent(section, arrayPath, [...current, item]);
+  const current = getSectionContent(section, arrayPath) as T[] | undefined;
+  const updated = [...(current ?? []), item];
+  return setSectionContent(section, arrayPath, updated);
 }
 
 /**
@@ -324,9 +323,9 @@ export function removeContentArrayItem(
   arrayPath: string,
   index: number
 ): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) return section;
-  const updated = current.filter((_: unknown, i: number) => i !== index);
+  const current = getSectionContent(section, arrayPath) as unknown[] | undefined;
+  if (!current) return section;
+  const updated = [...current.slice(0, index), ...current.slice(index + 1)];
   return setSectionContent(section, arrayPath, updated);
 }
 
@@ -339,8 +338,9 @@ export function updateContentArrayItem<T>(
   index: number,
   item: T
 ): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) return section;
-  const updated = current.map((_: unknown, i: number) => (i === index ? item : _));
+  const current = getSectionContent(section, arrayPath) as T[] | undefined;
+  if (!current) return section;
+  const updated = [...current];
+  updated[index] = item;
   return setSectionContent(section, arrayPath, updated);
 }
