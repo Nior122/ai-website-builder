@@ -1,7 +1,7 @@
 // =============================================================================
 // PATCH/DELETE /api/projects/[id]
 // =============================================================================
-import { type NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma/client';
 import { cacheDelete, cacheKeys } from '@/lib/redis/cache';
