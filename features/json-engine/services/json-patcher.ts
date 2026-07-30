@@ -14,7 +14,7 @@ import type { Section, SectionStyles, Animation, ImageConfig, SectionVisibility,
  * Deep merge two objects. Arrays are replaced (not merged).
  * Source properties override target properties recursively.
  */
-export function deepMerge<T extends Record<string, unknown>>(
+export function deepMerge<T extends object>(
   target: T,
   source: Partial<T>
 ): T {
@@ -75,8 +75,8 @@ export function patchSection(
 
   if (patches.styles) {
     updated.styles = deepMerge(
-      (section.styles || {}) as unknown as Record<string, unknown>,
-      patches.styles as unknown as Record<string, unknown>
+      (section.styles || {}) as Record<string, unknown>,
+      patches.styles as Record<string, unknown>
     ) as unknown as SectionStyles;
   }
 
@@ -164,7 +164,6 @@ export function reorderSections<T extends { order: number }>(
   const [moved] = result.splice(fromIndex, 1);
   result.splice(toIndex, 0, moved);
 
-  // Update order values
   return result.map((item, i) => ({
     ...item,
     order: i,
@@ -184,7 +183,7 @@ export function cloneSection(section: Section): Section {
     styles: JSON.parse(JSON.stringify(section.styles)),
     animations: JSON.parse(JSON.stringify(section.animations)),
     images: JSON.parse(JSON.stringify(section.images)),
-    order: section.order, // Caller should update order
+    order: section.order,
   };
 }
 
@@ -199,107 +198,50 @@ export function clonePage(page: Page): Page {
     id: nanoid(),
     sections: page.sections.map((section) => ({
       ...cloneSection(section),
-      pageId: undefined as unknown as string, // Will be set by caller
-    })) as Page['sections'],
+      order: section.order,
+    })),
   };
 }
 
-// ─── Content Path Access ────────────────────────────────────────────────
+// ─── Section Operations ─────────────────────────────────────────────────
 
-/**
- * Get a nested value from section content using dot-notation path.
- * Example: `getSectionContent(section, 'items.0.title')`
- */
-export function getSectionContent(
-  section: Section,
-  path: string
-): unknown {
-  const keys = path.split('.');
-  let current: unknown = section.content;
-
-  for (const key of keys) {
-    if (current === null || current === undefined) return undefined;
-    if (typeof current === 'object' && key in (current as Record<string, unknown>)) {
-      current = (current as Record<string, unknown>)[key];
-    } else {
-      return undefined;
-    }
-  }
-
-  return current;
+export function getSectionIndex(
+  page: Page,
+  sectionId: string
+): number {
+  return page.sections.findIndex((s) => s.id === sectionId);
 }
 
-/**
- * Set a nested value in section content using dot-notation path.
- * Returns a new section with the updated content (immutable).
- */
-export function setSectionContent(
+export function addSection(
+  page: Page,
   section: Section,
-  path: string,
-  value: unknown
-): Section {
-  const keys = path.split('.');
-  const content = JSON.parse(JSON.stringify(section.content)) as Record<string, unknown>;
-
-  let current = content;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key] as Record<string, unknown>;
-  }
-
-  current[keys[keys.length - 1]] = value;
-
+  index?: number
+): Page {
+  const sections = [...page.sections];
+  const insertAt = index ?? sections.length;
+  sections.splice(insertAt, 0, section);
   return {
-    ...section,
-    content,
+    ...page,
+    sections: sections.map((s, i) => ({ ...s, order: i })),
   };
 }
 
-// ─── Array Helpers ──────────────────────────────────────────────────────
-
-/**
- * Add an item to an array field in section content.
- */
-export function addContentArrayItem<T>(
-  section: Section,
-  arrayPath: string,
-  item: T
-): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) {
-    return setSectionContent(section, arrayPath, [item]);
-  }
-  return setSectionContent(section, arrayPath, [...current, item]);
+export function removeSection(page: Page, sectionId: string): Page {
+  return {
+    ...page,
+    sections: page.sections
+      .filter((s) => s.id !== sectionId)
+      .map((s, i) => ({ ...s, order: i })),
+  };
 }
 
-/**
- * Remove an item from an array field by index.
- */
-export function removeContentArrayItem(
-  section: Section,
-  arrayPath: string,
-  index: number
-): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) return section;
-  const updated = current.filter((_: unknown, i: number) => i !== index);
-  return setSectionContent(section, arrayPath, updated);
-}
-
-/**
- * Update an item in an array field by index.
- */
-export function updateContentArrayItem<T>(
-  section: Section,
-  arrayPath: string,
-  index: number,
-  item: T
-): Section {
-  const current = getSectionContent(section, arrayPath);
-  if (!Array.isArray(current)) return section;
-  const updated = current.map((_: unknown, i: number) => (i === index ? item : _));
-  return setSectionContent(section, arrayPath, updated);
+export function moveSection(
+  page: Page,
+  fromIndex: number,
+  toIndex: number
+): Page {
+  return {
+    ...page,
+    sections: reorderSections(page.sections, fromIndex, toIndex),
+  };
 }

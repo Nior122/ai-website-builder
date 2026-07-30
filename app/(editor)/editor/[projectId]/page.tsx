@@ -33,8 +33,6 @@ function ensureCompleteTheme(stored: unknown): Theme {
   return {
     ...defaults,
     ...partial,
-    // Deep-merge nested objects so a stored { preset } or { mode } doesn't
-    // erase the default's colors / typography / spacing / etc.
     colors: partial.colors && typeof partial.colors === 'object'
       ? { ...defaults.colors, ...(partial.colors as Record<string, unknown>) }
       : defaults.colors,
@@ -56,11 +54,11 @@ function ensureCompleteTheme(stored: unknown): Theme {
   } as Theme;
 }
 
-/** Shallow-merge nested objects one level deep (handles typography.{fontFamily,lineHeight} etc.). */
-function deepMerge<T extends Record<string, unknown>>(base: T, override: Record<string, unknown>): T {
+/** Shallow-merge nested objects one level deep. */
+function deepMerge<T extends object>(base: T, override: Record<string, unknown>): T {
   const result = { ...base } as Record<string, unknown>;
   for (const key of Object.keys(override)) {
-    const baseVal = base[key];
+    const baseVal = (base as Record<string, unknown>)[key];
     const overrideVal = override[key];
     if (baseVal && typeof baseVal === 'object' && !Array.isArray(baseVal) &&
         overrideVal && typeof overrideVal === 'object' && !Array.isArray(overrideVal)) {
@@ -93,18 +91,9 @@ async function getProject(projectId: string): Promise<{
 
   if (!project) return null;
 
-  // Parse the JSON columns (content/styles/animations/images/visibility) on
-  // every section of every page via the shared parser.
   const pages: Page[] = parseProjectPages(project.pages as unknown as Parameters<typeof parseProjectPages>[0]);
-
-  // Ensure the theme has all required nested fields even when globalStyles
-  // is empty or partial in the database.
   const completeTheme = ensureCompleteTheme(project.globalStyles);
 
-  // Build the typed Project. The scalar fields (customDomain, publishedAt,
-  // thumbnailUrl, templateId, …) come straight from the Prisma row; we only
-  // override the three JSON columns and `status` (which is a plain string in
-  // the DB, narrowed to the `ProjectStatus` union here).
   return {
     project: {
       id: project.id,
