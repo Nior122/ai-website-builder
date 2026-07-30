@@ -245,3 +245,102 @@ export function moveSection(
     sections: reorderSections(page.sections, fromIndex, toIndex),
   };
 }
+// ─── Content Path Access ────────────────────────────────────────────────
+
+/**
+ * Get a nested value from section content using dot-notation path.
+ * Example: `getSectionContent(section, 'items.0.title')`
+ */
+export function getSectionContent(
+  section: Section,
+  path: string
+): unknown {
+  const keys = path.split('.');
+  let current: unknown = section.content;
+
+  for (const key of keys) {
+    if (current === null || current === undefined) return undefined;
+    if (typeof current === 'object' && key in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[key];
+    } else {
+      return undefined;
+    }
+  }
+
+  return current;
+}
+
+/**
+ * Set a nested value in section content using dot-notation path.
+ * Returns a new section with the updated content (immutable).
+ */
+export function setSectionContent(
+  section: Section,
+  path: string,
+  value: unknown
+): Section {
+  const keys = path.split('.');
+  const content = JSON.parse(JSON.stringify(section.content)) as Record<string, unknown>;
+
+  let current = content;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!(key in current)) {
+      current[key] = {};
+    }
+    current = current[key] as Record<string, unknown>;
+  }
+
+  current[keys[keys.length - 1]] = value;
+
+  return {
+    ...section,
+    content,
+  };
+}
+
+// ─── Array Helpers ──────────────────────────────────────────────────────
+
+/**
+ * Add an item to an array field in section content.
+ */
+export function addContentArrayItem<T>(
+  section: Section,
+  arrayPath: string,
+  item: T
+): Section {
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) {
+    return setSectionContent(section, arrayPath, [item]);
+  }
+  return setSectionContent(section, arrayPath, [...current, item]);
+}
+
+/**
+ * Remove an item from an array field by index.
+ */
+export function removeContentArrayItem(
+  section: Section,
+  arrayPath: string,
+  index: number
+): Section {
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) return section;
+  const updated = current.filter((_: unknown, i: number) => i !== index);
+  return setSectionContent(section, arrayPath, updated);
+}
+
+/**
+ * Update an item in an array field by index.
+ */
+export function updateContentArrayItem<T>(
+  section: Section,
+  arrayPath: string,
+  index: number,
+  item: T
+): Section {
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) return section;
+  const updated = current.map((_: unknown, i: number) => (i === index ? item : _));
+  return setSectionContent(section, arrayPath, updated);
+}
