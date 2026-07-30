@@ -1,0 +1,242 @@
+
+> ai-website-builder-studio@1.0.0 build
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\PC\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\PC\Desktop\ai website generator\package-lock.json
+
+   ▲ Next.js 15.5.20
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · serverActions
+
+   Creating an optimized production build ...
+Found 1 warning while optimizing generated CSS:
+
+[2m│   }[22m
+[2m│ }[22m
+[2m│[22m .dark @utility glass {
+[2m┆[22m       [33m[2m^--[22m Invalid dangling combinator in selector[39m
+[2m┆[22m
+[2m│   background: rgba(0, 0, 0, 0.2);[22m
+[2m│   border: 1px solid rgba(255, 255, 255, 0.08);[22m
+
+ ✓ Compiled successfully in 21.2s
+   Linting and checking validity of types ...
+
+./app/(marketing)/blog/[slug]/page.tsx
+87:9  Warning: Unused eslint-disable directive (no problems were reported from 'react/no-danger').
+
+./app/api/admin/flags/route.ts
+9:10  Warning: 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/admin/flags/[key]/route.ts
+12:51  Warning: 'badRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'ZodError' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/ai/generate/route.ts
+14:10  Warning: 'ok' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/ai/images/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/ai/refine/route.ts
+8:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+42:13  Warning: 'projectId' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/auth/me/route.ts
+32:16  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/billing/subscription/route.ts
+7:10  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/deploy/[id]/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/notifications/route.ts
+11:28  Warning: 'getUnreadCount' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/projects/[id]/blog/route.ts
+19:7  Warning: 'listBlogPostsSchema' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+78:55  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/projects/[id]/blog/[postId]/route.ts
+65:68  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/projects/[id]/export/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+13:43  Warning: 'notFound' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/projects/[id]/route.ts
+8:10  Warning: 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+8:23  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+52:33  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/projects/[id]/sections/route.ts
+7:10  Warning: 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+7:23  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+76:57  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+77:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+78:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+79:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+80:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+82:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/storage/upload/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/stripe/checkout/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/stripe/portal/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/stripe/webhook/route.ts
+10:10  Warning: 'errorResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+70:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/templates/route.ts
+7:28  Warning: 'NextResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/admin/flags/page.tsx
+39:10  Warning: 'editing' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/projects/page.tsx
+30:9  Warning: 'router' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/templates/page.tsx
+105:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./lib/ai/generation.ts
+201:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+202:32  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+203:21  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+239:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+240:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+241:55  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+242:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+243:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+261:27  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+262:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/logger.ts
+117:18  Warning: Unexpected console statement. Only these console methods are allowed: warn, error.  no-console
+120:7  Warning: Unexpected console statement. Only these console methods are allowed: warn, error.  no-console
+
+./lib/middleware/rate-limit.ts
+56:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+57:15  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/middleware/request-logger.ts
+18:10  Warning: 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+21:31  Warning: 'logger' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+34:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+35:15  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/middleware/validate.ts
+48:6  Warning: 'RouteHandler' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./lib/redis/rate-limit.ts
+53:71  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/utils/logger.ts
+37:5  Warning: Unexpected console statement. Only these console methods are allowed: warn, error.  no-console
+40:5  Warning: Unexpected console statement. Only these console methods are allowed: warn, error.  no-console
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/26) ...
+   Generating static pages (6/26) 
+   Generating static pages (12/26) 
+   Generating static pages (19/26) 
+ ✓ Generating static pages (26/26)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                        Size  First Load JS
+┌ ƒ /                                             189 B         106 kB
+├ ƒ /_not-found                                   258 B         103 kB
+├ ƒ /about                                        189 B         106 kB
+├ ƒ /api/admin/audit                              258 B         103 kB
+├ ƒ /api/admin/flags                              258 B         103 kB
+├ ƒ /api/admin/flags/[key]                        258 B         103 kB
+├ ƒ /api/admin/stats                              258 B         103 kB
+├ ƒ /api/admin/users                              258 B         103 kB
+├ ƒ /api/ai/generate                              258 B         103 kB
+├ ƒ /api/ai/images                                258 B         103 kB
+├ ƒ /api/ai/refine                                258 B         103 kB
+├ ƒ /api/analytics/[projectId]                    258 B         103 kB
+├ ƒ /api/analytics/track                          258 B         103 kB
+├ ƒ /api/auth/me                                  258 B         103 kB
+├ ƒ /api/billing/subscription                     258 B         103 kB
+├ ƒ /api/deploy                                   258 B         103 kB
+├ ƒ /api/deploy/[id]                              258 B         103 kB
+├ ƒ /api/docs                                     258 B         103 kB
+├ ƒ /api/flags/[key]/check                        258 B         103 kB
+├ ƒ /api/health                                   258 B         103 kB
+├ ƒ /api/notifications                            258 B         103 kB
+├ ƒ /api/notifications/[id]/read                  258 B         103 kB
+├ ƒ /api/notifications/read-all                   258 B         103 kB
+├ ƒ /api/organizations/[orgId]/invitations        258 B         103 kB
+├ ƒ /api/organizations/[orgId]/members            258 B         103 kB
+├ ƒ /api/projects/[id]                            258 B         103 kB
+├ ƒ /api/projects/[id]/blog                       258 B         103 kB
+├ ƒ /api/projects/[id]/blog/[postId]              258 B         103 kB
+├ ƒ /api/projects/[id]/comments                   258 B         103 kB
+├ ƒ /api/projects/[id]/comments/[commentId]       258 B         103 kB
+├ ƒ /api/projects/[id]/domain                     258 B         103 kB
+├ ƒ /api/projects/[id]/export                     258 B         103 kB
+├ ƒ /api/projects/[id]/publish                    258 B         103 kB
+├ ƒ /api/projects/[id]/sections                   258 B         103 kB
+├ ƒ /api/projects/[id]/sections/[sectionId]       258 B         103 kB
+├ ƒ /api/projects/[id]/unpublish                  258 B         103 kB
+├ ƒ /api/storage/upload                           258 B         103 kB
+├ ƒ /api/stripe/checkout                          258 B         103 kB
+├ ƒ /api/stripe/portal                            258 B         103 kB
+├ ƒ /api/stripe/webhook                           258 B         103 kB
+├ ƒ /api/templates                                258 B         103 kB
+├ ƒ /api/webhooks/clerk                           258 B         103 kB
+├ ƒ /blog                                         189 B         106 kB
+├ ● /blog/[slug]                                  189 B         106 kB
+├   ├ /blog/how-ai-website-generation-works
+├   ├ /blog/choosing-a-theme-for-your-industry
+├   └ /blog/from-prompt-to-production
+├ ƒ /dashboard/admin                            2.59 kB         120 kB
+├ ƒ /dashboard/admin/flags                      2.01 kB         109 kB
+├ ƒ /dashboard/admin/users                      2.38 kB         116 kB
+├ ƒ /dashboard/analytics                         106 kB         220 kB
+├ ƒ /dashboard/generate                         2.01 kB         105 kB
+├ ƒ /dashboard/projects                         5.47 kB         117 kB
+├ ƒ /dashboard/settings                           258 B         103 kB
+├ ƒ /dashboard/settings/billing                 1.41 kB         109 kB
+├ ƒ /dashboard/templates                        1.46 kB         109 kB
+├ ƒ /docs                                         596 B         103 kB
+├ ƒ /editor/[projectId]                         54.6 kB         226 kB
+├ ƒ /preview/[projectId]/[[...pageSlug]]          735 B         167 kB
+├ ƒ /pricing                                    1.21 kB         107 kB
+├ ƒ /privacy                                      258 B         103 kB
+├ ○ /robots.txt                                   258 B         103 kB
+├ ƒ /sign-in/[[...sign-in]]                       406 B         140 kB
+├ ƒ /sign-up/[[...sign-up]]                       406 B         140 kB
+├ ƒ /site/[slug]                                  735 B         167 kB
+├ ƒ /site/[slug]/[...pageSlug]                    735 B         167 kB
+├ ○ /sitemap.xml                                  258 B         103 kB
+├ ƒ /templates                                    189 B         106 kB
+└ ƒ /terms                                        258 B         103 kB
++ First Load JS shared by all                    102 kB
+  ├ chunks/1255-ab54a41c275880be.js               46 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js         54.2 kB
+  └ other shared chunks (total)                 2.09 kB
+
+
+ƒ Middleware                                     226 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" rx="4" fill="#fafafa"/>
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="400" height="22" rx="4" fill="#e5e5e5"/>
+  <circle cx="12" cy="11" r="3" fill="#ef4444"/>
+  <circle cx="22" cy="11" r="3" fill="#eab308"/>
+  <circle cx="32" cy="11" r="3" fill="#22c55e"/>
+  <rect x="100" y="7" width="200" height="10" rx="5" fill="#d4d4d4"/>
+  <!-- Nav -->
+  <rect x="0" y="22" width="400" height="36" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <rect x="20" y="34" width="70" height="6" rx="2" fill="#0d9488"/>
+  <rect x="260" y="34" width="40" height="5" rx="2" fill="#a3a3a3"/>
+  <rect x="305" y="34" width="50" height="5" rx="2" fill="#a3a3a3"/>
+  <rect x="360" y="32" width="25" height="20" rx="4" fill="#0d9488"/>
+  <!-- Hero search -->
+  <rect x="0" y="58" width="400" height="80" fill="#f0fdfa"/>
+  <rect x="30" y="68" width="250" height="10" rx="2" fill="#0d9488" opacity="0.7"/>
+  <rect x="30" y="82" width="200" height="6" rx="2" fill="#52525b"/>
+  <!-- Search bar -->
+  <rect x="30" y="95" width="340" height="12" rx="6" fill="#ffffff" stroke="#d4d4d4" stroke-width="1"/>
+  <rect x="40" y="98" width="150" height="5" rx="2" fill="#d4d4d4"/>
+  <rect x="340" y="98" width="20" height="5" rx="2" fill="#0d9488"/>
+  <!-- Property cards -->
+  <rect x="0" y="138" width="400" height="70" fill="#fafafa"/>
+  <rect x="140" y="143" width="100" height="6" rx="2" fill="#0d9488" opacity="0.6"/>
+  <rect x="10" y="155" width="180" height="48" rx="4" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <rect x="15" y="160" width="170" height="20" rx="2" fill="#ccfbf1"/>
+  <rect x="20" y="165" width="80" height="4" rx="2" fill="#0d9488" opacity="0.4"/>
+  <rect x="20" y="172" width="50" height="3" rx="2" fill="#0d9488" opacity="0.8"/>
+  <rect x="15" y="183" width="60" height="6" rx="2" fill="#0d9488" opacity="0.5"/>
+  <rect x="15" y="192" width="120" height="4" rx="2" fill="#737373"/>
+  <rect x="210" y="155" width="180" height="48" rx="4" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <rect x="215" y="160" width="170" height="20" rx="2" fill="#ccfbf1"/>
+  <rect x="220" y="165" width="80" height="4" rx="2" fill="#0d9488" opacity="0.4"/>
+  <rect x="220" y="172" width="50" height="3" rx="2" fill="#0d9488" opacity="0.8"/>
+  <rect x="215" y="183" width="60" height="6" rx="2" fill="#0d9488" opacity="0.5"/>
+  <rect x="215" y="192" width="120" height="4" rx="2" fill="#737373"/>
+  <!-- Stats -->
+  <rect x="0" y="208" width="400" height="25" fill="#ffffff"/>
+  <rect x="50" y="215" width="30" height="6" rx="2" fill="#0d9488"/>
+  <rect x="50" y="222" width="25" height="4" rx="2" fill="#a3a3a3"/>
+  <rect x="140" y="215" width="30" height="6" rx="2" fill="#0d9488"/>
+  <rect x="140" y="222" width="25" height="4" rx="2" fill="#a3a3a3"/>
+  <rect x="230" y="215" width="30" height="6" rx="2" fill="#0d9488"/>
+  <rect x="230" y="222" width="25" height="4" rx="2" fill="#a3a3a3"/>
+  <rect x="320" y="215" width="30" height="6" rx="2" fill="#0d9488"/>
+  <rect x="320" y="222" width="25" height="4" rx="2" fill="#a3a3a3"/>
+  <!-- Footer -->
+  <rect x="0" y="233" width="400" height="67" fill="#0d9488"/>
+  <rect x="30" y="244" width="60" height="5" rx="2" fill="#fafafa" opacity="0.4"/>
+  <rect x="30" y="252" width="80" height="3" rx="2" fill="#fafafa" opacity="0.2"/>
+  <rect x="280" y="244" width="25" height="5" rx="2" fill="#fafafa" opacity="0.4"/>
+  <rect x="310" y="244" width="25" height="5" rx="2" fill="#fafafa" opacity="0.4"/>
+  <rect x="340" y="244" width="25" height="5" rx="2" fill="#fafafa" opacity="0.4"/>
+  <text x="200" y="280" text-anchor="middle" fill="#fafafa" opacity="0.5" font-size="7" font-family="system-ui">Real Estate Template</text>
+</svg>

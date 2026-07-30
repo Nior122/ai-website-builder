@@ -1,0 +1,50 @@
+# =============================================================================
+# Docker Ignore
+# =============================================================================
+# Files and directories excluded from the Docker build context.
+# =============================================================================
+
+# Dependencies
+node_modules
+.npm
+
+# Build outputs
+.next
+.vercel
+out
+
+# Test files
+__tests__
+e2e
+playwright-report
+test-results
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Config files (not needed in container)
+.github
+.vscode
+.git
+.gitignore
+.env*.local
+.env*.example
+*.md
+docker-compose*.yml
+Dockerfile
+.dockerignore
+.husky
+
+# IDE
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma migrations (use db push in container)
+prisma/migrations

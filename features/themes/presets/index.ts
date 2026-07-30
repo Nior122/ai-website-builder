@@ -1,0 +1,147 @@
+// =============================================================================
+// Theme Presets
+// =============================================================================
+// Built-in theme presets with full color palettes and typography.
+// =============================================================================
+
+import type { ThemePresetOption } from '../types';
+
+export const THEME_PRESETS: ThemePresetOption[] = [
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Clean, whitespace-focused design with subtle elegance',
+    thumbnail: '/presets/minimal.svg',
+    colors: {
+      primary: '#111827',
+      secondary: '#6B7280',
+      accent: '#3B82F6',
+      background: '#FFFFFF',
+      surface: '#F9FAFB',
+      text: '#111827',
+      textMuted: '#6B7280',
+      border: '#E5E7EB',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'luxury',
+    name: 'Luxury',
+    description: 'Rich, sophisticated design with gold accents',
+    thumbnail: '/presets/luxury.svg',
+    colors: {
+      primary: '#1C1917',
+      secondary: '#78716C',
+      accent: '#D4A574',
+      background: '#FAFAF9',
+      surface: '#F5F5F4',
+      text: '#1C1917',
+      textMuted: '#78716C',
+      border: '#E7E5E4',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate',
+    description: 'Professional, trustworthy design for businesses',
+    thumbnail: '/presets/corporate.svg',
+    colors: {
+      primary: '#1E40AF',
+      secondary: '#3B82F6',
+      accent: '#2563EB',
+      background: '#FFFFFF',
+      surface: '#EFF6FF',
+      text: '#1E3A5F',
+      textMuted: '#64748B',
+      border: '#CBD5E1',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'modern',
+    name: 'Modern',
+    description: 'Bold, contemporary design with vibrant colors',
+    thumbnail: '/presets/modern.svg',
+    colors: {
+      primary: '#7C3AED',
+      secondary: '#A78BFA',
+      accent: '#8B5CF6',
+      background: '#FFFFFF',
+      surface: '#F5F3FF',
+      text: '#1E1B4B',
+      textMuted: '#6B7280',
+      border: '#E5E7EB',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'creative',
+    name: 'Creative',
+    description: 'Playful, energetic design for creative businesses',
+    thumbnail: '/presets/creative.svg',
+    colors: {
+      primary: '#EC4899',
+      secondary: '#F472B6',
+      accent: '#DB2777',
+      background: '#FFF1F2',
+      surface: '#FDF2F8',
+      text: '#1F2937',
+      textMuted: '#6B7280',
+      border: '#FBCFE8',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'glassmorphism',
+    name: 'Glassmorphism',
+    description: 'Frosted glass effect with depth and transparency',
+    thumbnail: '/presets/glass.svg',
+    colors: {
+      primary: '#0EA5E9',
+      secondary: '#38BDF8',
+      accent: '#0284C7',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      surface: 'rgba(255, 255, 255, 0.15)',
+      text: '#FFFFFF',
+      textMuted: 'rgba(255, 255, 255, 0.7)',
+      border: 'rgba(255, 255, 255, 0.2)',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+  {
+    id: 'neumorphism',
+    name: 'Neumorphism',
+    description: 'Soft, extruded UI elements with subtle shadows',
+    thumbnail: '/presets/neumorphism.svg',
+    colors: {
+      primary: '#6366F1',
+      secondary: '#818CF8',
+      accent: '#4F46E5',
+      background: '#E0E5EC',
+      surface: '#E0E5EC',
+      text: '#2D3748',
+      textMuted: '#718096',
+      border: '#E2E8F0',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+    },
+  },
+];
+
+export function getPresetById(id: string): ThemePresetOption | undefined {
+  return THEME_PRESETS.find((p) => p.id === id);
+}

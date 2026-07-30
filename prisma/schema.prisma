@@ -1,0 +1,485 @@
+// =============================================================================
+// Prisma Schema — AI Website Builder Studio
+// =============================================================================
+// Complete database schema for the application. Uses PostgreSQL with
+// JSON fields for flexible section content and theme configurations.
+//
+// Design decisions:
+// - JSON fields for content/styles/animations (avoids excessive joins for
+//   deeply nested, schema-less data that's always read as a whole)
+// - Separate Page/Section models for granular ordering and CRUD
+// - Organization model for team/enterprise features
+// - Polymorphic comment system (can comment on any entity)
+// - Version history for undo/audit trail
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Authentication & Users ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  firstName     String?
+  lastName      String?
+  avatarUrl     String?
+  plan          String    @default("free") // free | pro | enterprise
+  role          String    @default("user") // user | admin
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  projects              Project[]
+  subscriptions         Subscription[]
+  aiGenerations         AIGeneration[]
+  exports               Export[]
+  comments              Comment[]
+  notifications         Notification[]
+  memberships           Membership[]
+  deployments           Deployment[]
+  apiKeys               ApiKey[]
+  auditLogs             AuditLog[]
+  ownedOrganizations    Organization[]
+  sentInvitations       Invitation[]
+  createdVersions       Version[]
+
+  @@index([clerkId])
+  @@index([email])
+  @@map("users")
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logoUrl     String?
+  plan        String    @default("free")
+  ownerId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  owner           User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships     Membership[]
+  projects        Project[]
+  invitations     Invitation[]
+
+  @@index([slug])
+  @@index([ownerId])
+  @@map("organizations")
+}
+
+model Membership {
+  id              String    @id @default(cuid())
+  userId          String
+  organizationId  String
+  role            String    @default("member") // owner | admin | member | viewer
+  joinedAt        DateTime  @default(now())
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("memberships")
+}
+
+model Invitation {
+  id              String    @id @default(cuid())
+  email           String
+  organizationId  String
+  role            String    @default("member")
+  invitedBy       String
+  token           String    @unique
+  status          String    @default("pending") // pending | accepted | expired
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter       User         @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+  @@index([organizationId])
+  @@map("invitations")
+}
+
+// ─── Billing & Subscriptions ────────────────────────────────────────────
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  stripeCustomerId       String    @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  plan                   String    @default("free") // free | pro | enterprise
+  status                 String    @default("active") // active | inactive | past_due | canceled | trialing
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  trialStart             DateTime?
+  trialEnd               DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@map("subscriptions")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String    // First 8 chars for display
+  permissions Json      @default("{}")
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+// ─── Projects & Content ─────────────────────────────────────────────────
+
+model Project {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String
+  description     String?
+  industry        String
+  businessType    String
+  status          String    @default("draft") // draft | published | archived
+  thumbnailUrl    String?
+  templateId      String?
+  customDomain    String?
+
+  // Owner & organization
+  ownerId         String
+  organizationId  String?
+
+  // Flexible JSON fields for configuration
+  settings        Json      @default("{}")
+  globalStyles    Json      @default("{}")
+  seo             Json      @default("{}")
+
+  // Timestamps
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  owner          User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  pages          Page[]
+  deployments    Deployment[]
+  exports        Export[]
+  aiGenerations  AIGeneration[]
+  comments       Comment[]
+  versions       Version[]
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([industry])
+  @@index([templateId])
+  @@map("projects")
+}
+
+model Page {
+  id              String    @id @default(cuid())
+  projectId       String
+  slug            String
+  title           String
+  metaTitle       String?
+  metaDescription String?
+  isHome          Boolean   @default(false)
+  order           Int       @default(0)
+
+  // Flexible JSON for page-level config
+  settings        Json      @default("{}")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sections Section[]
+
+  @@unique([projectId, slug])
+  @@index([projectId])
+  @@map("pages")
+}
+
+model Section {
+  id          String    @id @default(cuid())
+  pageId      String
+  type        String    // hero | features | testimonials | pricing | cta | about | etc.
+  layout      String    @default("1-col") // 1-col | 2-col | 3-col | sidebar-left | etc.
+  order       Int       @default(0)
+
+  // Core content — the JSON-first architecture lives here
+  content     Json      @default("{}")
+  styles      Json      @default("{}")
+  animations  Json      @default("{}")
+  images      Json      @default("[]")
+  visibility  Json      @default("{\"desktop\":true,\"tablet\":true,\"mobile\":true}")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  page     Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  comments Comment[]
+
+  @@index([pageId])
+  @@index([type])
+  @@map("sections")
+}
+
+model Version {
+  id          String    @id @default(cuid())
+  projectId   String
+  version     Int       @default(1)
+  label       String?   // "Before AI generation", "Manual save", etc.
+  snapshot    Json      // Complete project state at this point
+  createdBy   String
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator  User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, version])
+  @@map("versions")
+}
+
+// ─── AI Generation ──────────────────────────────────────────────────────
+
+model AIGeneration {
+  id          String    @id @default(cuid())
+  userId      String
+  projectId   String?
+
+  // Generation details
+  prompt      String
+  model       String    // "claude-sonnet-4-20250514"
+  tokensUsed  Int       @default(0)
+  cost        Float     @default(0)
+  duration    Int       @default(0) // milliseconds
+  status      String    @default("pending") // pending | running | success | failed
+  error       String?
+
+  // Input/Output for debugging and improvement
+  input       Json      @default("{}")
+  output      Json      @default("{}")
+
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("ai_generations")
+}
+
+// ─── Export & Deployment ────────────────────────────────────────────────
+
+model Export {
+  id          String    @id @default(cuid())
+  userId      String
+  projectId   String
+  format      String    // nextjs | react | html | tailwind | markdown | json | zip | pdf
+  fileSize    Int       @default(0)
+  fileCount   Int       @default(0)
+  status      String    @default("pending") // pending | processing | completed | failed
+  downloadUrl String?
+  config      Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("exports")
+}
+
+model Deployment {
+  id          String    @id @default(cuid())
+  projectId   String
+  userId      String
+  platform    String    // vercel | netlify | cloudflare | github | docker
+  status      String    @default("pending") // pending | building | deploying | deployed | failed | cancelled
+  url         String?
+  customDomain String?
+  config      Json      @default("{}")
+  buildLog    Json      @default("[]")
+  deployedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@map("deployments")
+}
+
+// ─── Collaboration ──────────────────────────────────────────────────────
+
+model Comment {
+  id          String    @id @default(cuid())
+  sectionId   String?
+  projectId   String
+  authorId    String
+  content     String
+  parentId    String?   // For nested replies
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  section  Section?  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  @@index([sectionId])
+  @@index([projectId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+// ─── Notifications ──────────────────────────────────────────────────────
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    // deployment_complete | generation_complete | comment_added | etc.
+  title       String
+  message     String
+  data        Json      @default("{}")
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ─── Analytics & Monitoring ─────────────────────────────────────────────
+
+model AnalyticsEvent {
+  id          String    @id @default(cuid())
+  projectId   String
+  eventType   String    // page_view | click | form_submit | custom
+  path        String?
+  referrer    String?
+  userAgent   String?
+  ip          String?
+  country     String?
+  device      String?   // desktop | mobile | tablet
+  browser     String?
+  data        Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId, eventType])
+  @@index([createdAt])
+  @@index([projectId, createdAt])
+  @@map("analytics_events")
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  userId      String
+  action      String    // project.create | project.update | section.update | etc.
+  resource    String    // project | section | page | user | etc.
+  resourceId  String?
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Feature Flags ──────────────────────────────────────────────────────
+
+model FeatureFlag {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  name        String
+  description String?
+  enabled     Boolean   @default(false)
+  rollout     Int       @default(0) // 0-100 percentage
+  conditions  Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([key])
+  @@map("feature_flags")
+}
+
+// ─── Templates ──────────────────────────────────────────────────────────
+
+model Template {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  industry    String
+  thumbnail   String?
+  previewUrl  String?
+  data        Json      // Template sections, theme, etc.
+  tags        String[]  @default([])
+  featured    Boolean   @default(false)
+  usageCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([industry])
+  @@index([featured])
+  @@index([slug])
+  @@map("templates")
+}

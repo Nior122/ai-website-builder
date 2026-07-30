@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" rx="4" fill="#fafafa"/>
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="400" height="22" rx="4" fill="#e5e5e5"/>
+  <circle cx="12" cy="11" r="3" fill="#ef4444"/>
+  <circle cx="22" cy="11" r="3" fill="#eab308"/>
+  <circle cx="32" cy="11" r="3" fill="#22c55e"/>
+  <rect x="100" y="7" width="200" height="10" rx="5" fill="#d4d4d4"/>
+  <!-- Nav -->
+  <rect x="0" y="22" width="400" height="36" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <rect x="20" y="34" width="70" height="6" rx="2" fill="#be185d"/>
+  <rect x="320" y="33" width="20" height="18" rx="6" fill="#fce7f3"/>
+  <!-- Hero -->
+  <rect x="0" y="58" width="400" height="80" fill="#fdf2f8"/>
+  <rect x="30" y="70" width="200" height="10" rx="2" fill="#be185d" opacity="0.7"/>
+  <rect x="30" y="84" width="140" height="6" rx="2" fill="#9d174d"/>
+  <rect x="30" y="96" width="100" height="8" rx="2" fill="#be185d"/>
+  <!-- Hero fashion image -->
+  <rect x="260" y="64" width="120" height="70" rx="4" fill="#fce7f3" stroke="#f9a8d4" stroke-width="2"/>
+  <ellipse cx="320" cy="98" rx="25" ry="30" fill="#f9a8d4" opacity="0.5"/>
+  <!-- Product grid -->
+  <rect x="0" y="138" width="400" height="60" fill="#fafafa"/>
+  <rect x="10" y="143" width="90" height="50" rx="3" fill="#ffffff" stroke="#f9a8d4" stroke-width="1"/>
+  <rect x="15" y="148" width="80" height="30" rx="2" fill="#fce7f3"/>
+  <rect x="25" y="156" width="60" height="4" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="25" y="162" width="40" height="3" rx="2" fill="#be185d"/>
+  <rect x="105" y="143" width="90" height="50" rx="3" fill="#ffffff" stroke="#f9a8d4" stroke-width="1"/>
+  <rect x="110" y="148" width="80" height="30" rx="2" fill="#fce7f3"/>
+  <rect x="120" y="156" width="60" height="4" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="120" y="162" width="40" height="3" rx="2" fill="#be185d"/>
+  <rect x="200" y="143" width="90" height="50" rx="3" fill="#ffffff" stroke="#f9a8d4" stroke-width="1"/>
+  <rect x="205" y="148" width="80" height="30" rx="2" fill="#fce7f3"/>
+  <rect x="215" y="156" width="60" height="4" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="215" y="162" width="40" height="3" rx="2" fill="#be185d"/>
+  <rect x="295" y="143" width="95" height="50" rx="3" fill="#ffffff" stroke="#f9a8d4" stroke-width="1"/>
+  <rect x="300" y="148" width="85" height="30" rx="2" fill="#fce7f3"/>
+  <rect x="310" y="156" width="60" height="4" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="310" y="162" width="40" height="3" rx="2" fill="#be185d"/>
+  <!-- Newsletter -->
+  <rect x="0" y="198" width="400" height="35" fill="#be185d"/>
+  <rect x="80" y="206" width="200" height="6" rx="2" fill="#fdf2f8" opacity="0.7"/>
+  <rect x="100" y="216" width="120" height="8" rx="4" fill="#fdf2f8"/>
+  <rect x="230" y="216" width="40" height="8" rx="4" fill="#fdf2f8" opacity="0.5"/>
+  <!-- Footer -->
+  <rect x="0" y="233" width="400" height="67" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <rect x="30" y="244" width="60" height="5" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="30" y="252" width="80" height="3" rx="2" fill="#a3a3a3"/>
+  <rect x="280" y="244" width="25" height="5" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="310" y="244" width="25" height="5" rx="2" fill="#be185d" opacity="0.4"/>
+  <rect x="340" y="244" width="25" height="5" rx="2" fill="#be185d" opacity="0.4"/>
+  <text x="200" y="280" text-anchor="middle" fill="#a3a3a3" font-size="7" font-family="system-ui">Fashion E-Commerce Template</text>
+</svg>

@@ -1,0 +1,240 @@
+# =============================================================================
+# CI Pipeline — AI Website Builder Studio
+# =============================================================================
+# Runs on every push and PR to main. Steps: lint, typecheck, unit tests,
+# build, and E2E tests. Uses services for PostgreSQL and Redis.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+  CLERK_SECRET_KEY: sk_test_placeholder
+  CLERK_WEBHOOK_SECRET: whsec_placeholder
+  ANTHROPIC_API_KEY: sk-ant-placeholder
+  STRIPE_SECRET_KEY: sk_test_placeholder
+  STRIPE_WEBHOOK_SECRET: whsec_placeholder
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+  REDIS_URL: redis://localhost:6379
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+jobs:
+  # ─── Lint & Typecheck ──────────────────────────────────────────────────
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript Check
+        run: npm run typecheck
+
+  # ─── Unit Tests ────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Unit Tests with Coverage
+        run: npx vitest run --coverage --reporter=verbose
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          REDIS_URL: ${{ env.REDIS_URL }}
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+      - name: Find Coverage Comment (PR)
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v3
+        id: coverage-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '## Coverage Report'
+
+      - name: Build Coverage Summary
+        if: github.event_name == 'pull_request'
+        id: summary
+        run: |
+          # Parse the lcov summary into a compact markdown block.
+          # `lcov --summary` is not guaranteed on the runner, so parse the
+          # Vitest json-summary reporter file (coverage/coverage-summary.json)
+          # which is always present under the v8 provider's html+lcov run.
+          node <<'SCRIPT'
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const totals = summary.total;
+          const pct = (n) => (n == null ? 'n/a' : `${n.toFixed(2)}%`);
+          const lines = [
+            '## 📊 Coverage Report',
+            '',
+            '| Metric | Coverage |',
+            '| ------ | -------- |',
+            `| Lines | ${pct(totals.lines.pct)} |`,
+            `| Statements | ${pct(totals.statements.pct)} |`,
+            `| Functions | ${pct(totals.functions.pct)} |`,
+            `| Branches | ${pct(totals.branches.pct)} |`,
+            '',
+            `[Detailed HTML report](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`,
+          ].join('\n');
+          fs.writeFileSync('/tmp/coverage-body.md', lines);
+          console.log(lines);
+          SCRIPT
+          {
+            echo "body<<EOF";
+            cat /tmp/coverage-body.md;
+            echo "EOF";
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Post / Update Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.coverage-comment.outputs.comment-id }}
+          body-path: /tmp/coverage-body.md
+          edit-mode: replace
+
+  # ─── Build ─────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          REDIS_URL: redis://localhost:6379
+
+  # ─── E2E Tests ─────────────────────────────────────────────────────────
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run E2E Tests
+        run: npx playwright test
+        env:
+          CI: true
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          REDIS_URL: ${{ env.REDIS_URL }}
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

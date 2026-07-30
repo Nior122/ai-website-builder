@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Browser chrome -->
+  <rect width="400" height="300" rx="4" fill="#1c1917"/>
+  <!-- Title bar -->
+  <rect x="0" y="0" width="400" height="22" rx="4" fill="#292524"/>
+  <circle cx="12" cy="11" r="3" fill="#ef4444"/>
+  <circle cx="22" cy="11" r="3" fill="#eab308"/>
+  <circle cx="32" cy="11" r="3" fill="#22c55e"/>
+  <rect x="100" y="7" width="200" height="10" rx="5" fill="#44403c"/>
+  <!-- Hero with dark bg -->
+  <rect x="0" y="22" width="400" height="100" fill="#292524"/>
+  <rect x="20" y="30" width="80" height="6" rx="2" fill="#78716c"/>
+  <rect x="300" y="30" width="40" height="6" rx="2" fill="#78716c"/>
+  <rect x="350" y="30" width="30" height="6" rx="2" fill="#d97706"/>
+  <!-- Headline -->
+  <rect x="40" y="55" width="180" height="10" rx="3" fill="#fafaf9"/>
+  <rect x="40" y="70" width="140" height="6" rx="3" fill="#a8a29e"/>
+  <rect x="40" y="85" width="100" height="8" rx="3" fill="#d97706"/>
+  <!-- Food image placeholder -->
+  <circle cx="310" cy="80" r="28" fill="#44403c"/>
+  <circle cx="310" cy="80" r="28" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4"/>
+  <!-- Menu section -->
+  <rect x="0" y="122" width="400" height="55" fill="#1c1917"/>
+  <rect x="170" y="130" width="60" height="6" rx="2" fill="#fafaf9" opacity="0.6"/>
+  <rect x="30" y="145" width="80" height="28" rx="3" fill="#292524"/>
+  <rect x="35" y="150" width="30" height="6" rx="2" fill="#d97706" opacity="0.5"/>
+  <rect x="35" y="158" width="50" height="4" rx="2" fill="#78716c"/>
+  <rect x="130" y="145" width="80" height="28" rx="3" fill="#292524"/>
+  <rect x="135" y="150" width="30" height="6" rx="2" fill="#d97706" opacity="0.5"/>
+  <rect x="135" y="158" width="50" height="4" rx="2" fill="#78716c"/>
+  <rect x="230" y="145" width="80" height="28" rx="3" fill="#292524"/>
+  <rect x="235" y="150" width="30" height="6" rx="2" fill="#d97706" opacity="0.5"/>
+  <rect x="235" y="158" width="50" height="4" rx="2" fill="#78716c"/>
+  <rect x="330" y="145" width="40" height="28" rx="3" fill="#292524"/>
+  <rect x="335" y="158" width="30" height="4" rx="2" fill="#78716c"/>
+  <!-- Gallery row -->
+  <rect x="0" y="177" width="400" height="50" fill="#1c1917"/>
+  <rect x="10" y="185" width="90" height="34" rx="3" fill="#292524"/>
+  <rect x="105" y="185" width="90" height="34" rx="3" fill="#292524"/>
+  <rect x="200" y="185" width="90" height="34" rx="3" fill="#292524"/>
+  <rect x="295" y="185" width="95" height="34" rx="3" fill="#292524"/>
+  <!-- Footer -->
+  <rect x="0" y="227" width="400" height="73" fill="#292524"/>
+  <rect x="30" y="240" width="60" height="6" rx="2" fill="#78716c"/>
+  <rect x="30" y="250" width="80" height="4" rx="2" fill="#44403c"/>
+  <rect x="280" y="240" width="30" height="6" rx="2" fill="#78716c"/>
+  <rect x="315" y="240" width="30" height="6" rx="2" fill="#78716c"/>
+  <rect x="350" y="240" width="30" height="6" rx="2" fill="#78716c"/>
+  <text x="200" y="280" text-anchor="middle" fill="#78716c" font-size="7" font-family="system-ui">Modern Restaurant Template</text>
+</svg>
