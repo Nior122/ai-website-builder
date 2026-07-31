@@ -19,13 +19,15 @@ export interface StockImageOptions {
   height?: number;
 }
 
-export interface StockImage {
+// Type alias (not interface) so it stays assignable to Record<string, unknown> —
+// interfaces don't get the implicit index signature type aliases do.
+export type StockImage = {
   src: string;
   alt: string;
   width: number;
   height: number;
   loading: 'lazy' | 'eager';
-}
+};
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 600;
