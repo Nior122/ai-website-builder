@@ -15,8 +15,8 @@ function create(): RedisClientType|null{
 let init=false;
 function ensure():RedisClientType|null{if(!init){init=true;st.client=create();st.interval=setInterval(async()=>{if(st.degraded&&st.client){try{await st.client.ping();if(!st.available){st.available=true;st.degraded=false}}catch{/* */}}},30000)}return st.client}
 export function getRedis():RedisClientType|null{return ensure()}
-export function isRedisAvailable():boolean{return st.available&&!st.degraded}
-export function isDegradedMode():boolean{return st.degraded}
+export function isRedisAvailable():boolean{return !!process.env.REDIS_URL&&st.available&&!st.degraded}
+export function isDegradedMode():boolean{return st.degraded||!process.env.REDIS_URL}
 export function getRedisHealth(){return{available:st.available,degraded:st.degraded,lastError:st.lastError,reconnectAttempts:st.reconnectAttempts}}
 export async function shutdownRedis(){if(st.interval){clearInterval(st.interval);st.interval=null}if(st.client){try{await st.client.quit()}catch{/* */}st.client=null}st.available=false;st.degraded=true}
 export async function safeRedisOp<T>(op:(c:RedisClientType)=>Promise<T>,fb:T):Promise<T>{const c=ensure();if(!c||!st.available)return fb;try{return await op(c)}catch(e){st.lastError=''+e;return fb}}

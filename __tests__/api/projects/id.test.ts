@@ -124,13 +124,19 @@ describe('PATCH /api/projects/[id]', () => {
   });
 
   it('returns 404 when user does not own the project', async () => {
-    mockFindUnique.mockResolvedValue({ ownerId: 'user_other' });
+    // Ownership is enforced in the query — findUnique is scoped by ownerId,
+    // so a project owned by someone else resolves to null → 404.
+    mockFindUnique.mockResolvedValue(null);
 
     const response = await PATCH(makePatchRequest('proj_abc', { name: 'Test' }));
     const data = await response.json();
 
     expect(response.status).toBe(404);
     expect(data.success).toBe(false);
+    expect(mockFindUnique).toHaveBeenCalledWith({
+      where: { id: 'proj_abc', ownerId: 'user_123' },
+      select: { slug: true, ownerId: true },
+    });
   });
 
   it('updates project and returns 200 on success', async () => {

@@ -42,7 +42,7 @@ export async function generateWithClaude(
     callbacks.onProgress({ phase: 'generating', message: 'Saving website data...', progress: 98, pagesGenerated: totalPages, totalPages, currentSection: null });
     const transformed = transformAIOutput(pipelineResult.data as unknown as Record<string, unknown>);
     if (!transformed.success) logger.warn(`Transform had ${transformed.errors.length} non-fatal errors`, { ...LOG, errors: transformed.errors.slice(0, 5) });
-    await updateProject(projectId, { name: pipelineResult.data.brand.name || request.businessName || `${request.industry} Website`, description: pipelineResult.data.brand.description || request.description, brand: pipelineResult.data.brand, seo: pipelineResult.data.seo, settings: { ...getDefaultProjectSettings(), language: request.language || 'en' } });
+    await updateProject(projectId, dbUserId, { name: pipelineResult.data.brand.name || request.businessName || `${request.industry} Website`, description: pipelineResult.data.brand.description || request.description, brand: pipelineResult.data.brand, seo: pipelineResult.data.seo, settings: { ...getDefaultProjectSettings(), language: request.language || 'en' } });
     const savedPages = await savePagesAndSections(projectId, pipelineResult.data);
     callbacks.onProgress({ phase: 'complete', message: 'Website generated successfully!', progress: 100, pagesGenerated: savedPages.length, totalPages: savedPages.length, currentSection: null });
     callbacks.onComplete({

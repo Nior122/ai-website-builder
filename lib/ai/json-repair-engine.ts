@@ -8,9 +8,9 @@ interface RepairStrategy { name: string; apply: (text: string) => string | null;
 const STRATEGIES: RepairStrategy[] = [
   { name: 'strip-bom-and-zero-width', apply: (text) => { const c = text.replace(/^\uFEFF/,'').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/[\u00A0]/g,' ').replace(/[\u2028\u2029]/g,'\n').trim(); return c !== text ? c : null; } },
   { name: 'remove-markdown-fences', apply: (text) => { const c = text.replace(/```(?:json|js|javascript|ts|typescript)?\s*\n?([\s\S]*?)```/g,'$1').trim(); return c !== text ? c : null; } },
-  { name: 'extract-json-object', apply: (text) => { const fb = text.indexOf('{'), lb = text.lastIndexOf('}'); if (fb!==-1 && lb!==-1 && lb>fb) { const e = text.slice(fb,lb+1); return e !== text ? e : null; } const fbr = text.indexOf('['), lbr = text.lastIndexOf(']'); if (fbr!==-1 && lbr!==-1 && lbr>fbr) { const e = text.slice(fbr,lbr+1); return e !== text ? e : null; } return null; } },
+  { name: 'extract-json-object', apply: (text) => { const trimmed = text.trim(); if (trimmed[0]==='{'||trimmed[0]==='[') return null; const fb = text.indexOf('{'), lb = text.lastIndexOf('}'); if (fb!==-1 && lb!==-1 && lb>fb) { const e = text.slice(fb,lb+1); return e !== text ? e : null; } const fbr = text.indexOf('['), lbr = text.lastIndexOf(']'); if (fbr!==-1 && lbr!==-1 && lbr>fbr) { const e = text.slice(fbr,lbr+1); return e !== text ? e : null; } return null; } },
   { name: 'smart-quotes-to-straight', apply: (text) => { const c = text.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g,'"').replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g,"'"); return c !== text ? c : null; } },
-  { name: 'single-quotes-to-double', apply: (text) => { let c = text.replace(/(?<=[{,]\s*)'(?!\s*[{,}\]])/g,'"'); c = c.replace(/:\s*'([^']*?)'(?=\s*[,}\]])/g,': "$1"'); return c !== text ? c : null; } },
+  { name: 'single-quotes-to-double', apply: (text) => { let c = text.replace(/([{,]\s*)'([^']*?)'(?=\s*:)/g,'$1"$2"'); c = c.replace(/(:\s*)'([^']*?)'(?=\s*[,}\]])/g,'$1"$2"'); return c !== text ? c : null; } },
   { name: 'remove-trailing-commas', apply: (text) => { const c = text.replace(/,\s*}/g,'}').replace(/,\s*]/g,']'); return c !== text ? c : null; } },
   { name: 'remove-duplicate-commas', apply: (text) => { const c = text.replace(/,(\s*,)+/g,','); return c !== text ? c : null; } },
   { name: 'add-missing-commas-objects', apply: (text) => { const c = text.replace(/}\s*{/g,'},{').replace(/}\s*\[/g,'},[').replace(/]\s*{/g,'],{'); return c !== text ? c : null; } },
@@ -32,7 +32,7 @@ export function repairAndParse(rawText: string): RepairResult {
   const rawPreview = text.length > 500 ? text.slice(0,500)+'...' : text;
   try { const data = JSON.parse(text); return { success: true, json: text, data, repairsApplied: 0, repairsList: [], rawPreview }; } catch { /* fall through */ }
   for (const strategy of STRATEGIES) {
-    try { const repaired = strategy.apply(text); if (repaired !== null) { try { const data = JSON.parse(repaired); repairsList.push(strategy.name); return { success: true, json: repaired, data, repairsApplied: 1, repairsList, rawPreview }; } catch { text = repaired; repairsList.push(strategy.name); } } } catch { continue; }
+    try { const repaired = strategy.apply(text); if (repaired !== null) { try { const data = JSON.parse(repaired); repairsList.push(strategy.name); return { success: true, json: repaired, data, repairsApplied: repairsList.length, repairsList, rawPreview }; } catch { text = repaired; repairsList.push(strategy.name); } } } catch { continue; }
   }
   try { const data = JSON.parse(text); return { success: true, json: text, data, repairsApplied: repairsList.length, repairsList, rawPreview }; } catch { /* fall through */ }
   try { const found = findAnyJSON(text); if (found !== null) { const data = JSON.parse(found); repairsList.push('find-any-json'); return { success: true, json: found, data, repairsApplied: repairsList.length, repairsList, rawPreview }; } } catch { /* */ }

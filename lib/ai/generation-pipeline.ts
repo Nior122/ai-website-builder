@@ -6,6 +6,7 @@ import { getModelManager, type ModelCallResult } from './model-manager';
 import { repairAndParse } from './json-repair-engine';
 import { safeValidate } from './safe-validation';
 import { getDefaultBrand, getDefaultTheme, getDefaultSEO, getDefaultAnimations, getDefaultImages } from './defaults';
+import { resolveStockImage } from './stock-images';
 import { BRAND_SYSTEM_PROMPT, buildBrandPrompt, THEME_SYSTEM_PROMPT, buildThemePrompt, PAGES_SYSTEM_PROMPT, buildPagesPrompt, SECTIONS_SYSTEM_PROMPT, buildSectionsPrompt, SEO_SYSTEM_PROMPT, buildSEOPrompt, IMAGE_SYSTEM_PROMPT, buildImagePrompt } from './prompts/templates';
 import { logStageStart, logStageComplete, logStageFailed, generatePipelineSummary, type GenerationStage, type StageLog } from './observability';
 import { GenerationStageError, JSONRepairError, type AIErrorContext } from './structured-errors';
@@ -21,7 +22,7 @@ export async function runGenerationPipeline(request: GenerateRequest, options: P
   const totalPages = request.pages?.length || 5;
   let brand: Record<string, unknown> | null = null; let theme: Record<string, unknown> | null = null;
   let pagesOutput: Array<Record<string, unknown>> | null = null; const sectionsByPage: Map<string, Array<Record<string, unknown>>> = new Map();
-  let seo: Record<string, unknown> | null = null; let images: Array<Record<string, unknown>> | null = null;
+  let seo: Record<string, unknown> | null = null; const imagesByIndex: Map<number, Array<Record<string, unknown>>> = new Map();
   try {
     emit(options, { phase: 'generating', message: 'Defining brand identity...', progress: 10, pagesGenerated: 0, totalPages, currentSection: null }); logStageStart('brand');
     try { const r = await mm.executeWithFallback<string>({ system: BRAND_SYSTEM_PROMPT, messages: [{ role: 'user', content: buildBrandPrompt(request) }], stage: 'brand' }, { ...aiCtx, stage: 'brand' }); brand = validateStage('brand', r, brandSchema, 'brand') as Record<string, unknown>; logStageComplete('brand', { durationMs: r.latencyMs, model: r.model, provider: r.provider, validationPassed: true }); } catch { brand = getDefaultBrand() as Record<string, unknown>; logStageComplete('brand', { durationMs: 0, validationPassed: true }); }
@@ -38,10 +39,25 @@ export async function runGenerationPipeline(request: GenerateRequest, options: P
     emit(options, { phase: 'generating', message: 'Optimizing SEO...', progress: 85, pagesGenerated: pc, totalPages: pc, currentSection: null }); logStageStart('seo');
     try { const r = await mm.executeWithFallback<string>({ system: SEO_SYSTEM_PROMPT, messages: [{ role: 'user', content: buildSEOPrompt({ businessName: (brand?.name as string)||request.businessName||'Business', description: request.description, industry: request.industry, businessType: request.businessType, pages: (pagesOutput||[]).map(p=>({slug:p.slug as string||'',title:p.title as string||'',metaTitle:p.metaTitle as string||'',metaDescription:p.metaDescription as string||''})), language: request.language||'en' }) }], stage: 'seo' }, { ...aiCtx, stage: 'seo' }); seo = validateStage('seo', r, seoSchema, 'seo') as Record<string, unknown>; logStageComplete('seo', { durationMs: r.latencyMs, validationPassed: true }); } catch { seo = getDefaultSEO((brand?.name as string)||'Website') as Record<string, unknown>; logStageComplete('seo', { durationMs: 0, validationPassed: true }); }
     aborted(options.signal);
-    emit(options, { phase: 'generating', message: 'Generating images...', progress: 95, pagesGenerated: pc, totalPages: pc, currentSection: null }); logStageStart('images');
-    try { const descs: Array<{index:number;type:string;headline?:string;description?:string}> = []; let idx=0; for(const[,secs] of sectionsByPage){for(const s of secs){const c=s.content as any||{};descs.push({index:idx++,type:s.type as string||'',headline:c.headline||undefined,description:c.subheadline||undefined})}}
-      const r = await mm.executeWithFallback<string>({ system: IMAGE_SYSTEM_PROMPT, messages: [{ role: 'user', content: buildImagePrompt({ businessName: (brand?.name as string)||request.businessName||'Business', industry: request.industry, businessType: request.businessType, tone: (brand?.tone as string)||request.tone||'professional', sections: descs.slice(0,20) }) }], stage: 'images' }, { ...aiCtx, stage: 'images' }); images = (validateStage('images', r, imagesSchema, 'images') as any).images; logStageComplete('images', { durationMs: r.latencyMs, validationPassed: true }); } catch { images = getDefaultImages(3); logStageComplete('images', { durationMs: 0, validationPassed: true }); }
-    const merged = mergeStages(brand!, theme!, pagesOutput!, sectionsByPage, seo!, images!, request); const td = Date.now()-startTime; logStageComplete('merge', { durationMs: 0, validationPassed: true });
+    emit(options, { phase: 'generating', message: 'Selecting free images...', progress: 95, pagesGenerated: pc, totalPages: pc, currentSection: null }); logStageStart('images');
+    try {
+      const descs: Array<{index:number;type:string;headline?:string;description?:string}> = []; let idx=0; for(const[,secs] of sectionsByPage){for(const s of secs){const c=s.content as any||{};descs.push({index:idx++,type:s.type as string||'',headline:c.headline||undefined,description:c.subheadline||undefined})}}
+      const r = await mm.executeWithFallback<string>({ system: IMAGE_SYSTEM_PROMPT, messages: [{ role: 'user', content: buildImagePrompt({ businessName: (brand?.name as string)||request.businessName||'Business', industry: request.industry, businessType: request.businessType, tone: (brand?.tone as string)||request.tone||'professional', sections: descs.slice(0,20) }) }], stage: 'images' }, { ...aiCtx, stage: 'images' });
+      const imgOut = validateStage('images', r, imagesSchema, 'images') as { images?: Array<{ sectionIndex?: number; sectionType?: string; queries?: Array<{ query?: string; alt?: string; style?: string }> }> };
+      // Resolve the AI's image queries to free stock URLs (no image model).
+      for (const group of imgOut.images ?? []) {
+        const index = typeof group.sectionIndex === 'number' ? group.sectionIndex : -1;
+        const queries = (group.queries ?? []).filter(q => q && (q.query || q.alt));
+        if (index >= 0 && queries.length > 0) {
+          imagesByIndex.set(index, queries.slice(0, 3).map((q, qi) => resolveStockImage({ query: q.query || q.alt || '', sectionType: group.sectionType || '', industry: request.industry, alt: q.alt || q.query || `${group.sectionType || 'image'} image`, seed: `gen:${index}:${qi}` })));
+        }
+      }
+      logStageComplete('images', { durationMs: r.latencyMs, validationPassed: true });
+    } catch { logStageComplete('images', { durationMs: 0, validationPassed: true }); }
+    // Guarantee every section has a free image even when the AI image stage
+    // failed or returned nothing — deterministic per section.
+    { let gi = 0; for (const [, secs] of sectionsByPage) { for (const s of secs) { if (!imagesByIndex.has(gi)) { const c = s.content as any || {}; imagesByIndex.set(gi, [resolveStockImage({ query: (c.headline as string) || (s.type as string) || '', sectionType: s.type as string || '', industry: request.industry, alt: (c.headline as string) || `${s.type || 'section'} image`, seed: `sec:${gi}:${request.industry || 'general'}` })]); } gi++; } } }
+    const merged = mergeStages(brand!, theme!, pagesOutput!, sectionsByPage, seo!, imagesByIndex, request); const td = Date.now()-startTime; logStageComplete('merge', { durationMs: 0, validationPassed: true });
     logger.info(`Pipeline completed in ${td}ms`, { ...LOG, totalDurationMs: td }); return { success: true, data: merged, projectId: options.projectId, stageLogs, totalDurationMs: td };
   } catch (err) { const td = Date.now() - startTime; logger.error(`Pipeline failed after ${td}ms: ${err instanceof Error?err.message:String(err)}`, LOG); return { success: false, error: String(err), stageLogs, totalDurationMs: td }; }
 }
@@ -50,8 +66,9 @@ function validateStage(stage: string, result: ModelCallResult<string>, schema: z
   const rr = repairAndParse(result.data); if (!rr.success) throw new JSONRepairError(rr.error||'Parse failed', rr.rawPreview, rr.repairsList, {stage});
   const vr = safeValidate(schema, rr.data, { defaultBasePath: base, verbose: true }); if (!vr.success) throw new GenerationStageError(stage, `Validation failed: ${vr.error}`); return vr.data;
 }
-function mergeStages(brand: Record<string,unknown>, theme: Record<string,unknown>, pages: Array<Record<string,unknown>>, sectionsByPage: Map<string, Array<Record<string,unknown>>>, seo: Record<string,unknown>, images: Array<Record<string,unknown>>, request: GenerateRequest): AIProjectOutput {
-  const mp = pages.map(pg => { const slug = (pg.slug as string)||''; const secs = sectionsByPage.get(slug)||[]; return { ...pg, sections: secs.map((s,i) => ({ type: s.type as string, layout: (s.layout as string)||'default', content: (s.content as any)||{}, styles: (s.styles as any)||{}, animations: getDefaultAnimations(), images: getDefaultImages(1), order: s.order as number??i })) }; });
+function mergeStages(brand: Record<string,unknown>, theme: Record<string,unknown>, pages: Array<Record<string,unknown>>, sectionsByPage: Map<string, Array<Record<string,unknown>>>, seo: Record<string,unknown>, imagesByIndex: Map<number, Array<Record<string,unknown>>>, request: GenerateRequest): AIProjectOutput {
+  let gi = 0;
+  const mp = pages.map(pg => { const slug = (pg.slug as string)||''; const secs = sectionsByPage.get(slug)||[]; const mapped = secs.map((s,i) => { const images = imagesByIndex.get(gi) ?? getDefaultImages(1); gi += 1; return { type: s.type as string, layout: (s.layout as string)||'default', content: (s.content as any)||{}, styles: (s.styles as any)||{}, animations: getDefaultAnimations(), images, order: s.order as number??i }; }); return { ...pg, sections: mapped }; });
   return { brand: brand as any, pages: mp as any, theme: { preset: (theme.preset as string)||'professional', mode: (theme.mode as string)||'light', colors: (theme.colors as any)||{}, typography: (theme.typography as any)||{} }, seo: { metaTitle: (seo.metaTitle as string)||`${(brand.name as string)||'Website'} — Site`, metaDescription: (seo.metaDescription as string)||'', keywords: (seo.keywords as string[])||[], ogImage: (seo.ogImage as string)||null, noIndex: (seo.noIndex as boolean)||false, noFollow: (seo.noFollow as boolean)||false, jsonLd: (seo.jsonLd as any[])||[], sitemap: (seo.sitemap as boolean)??true }, settings: { language: request.language||'en', favicon: null, socialLinks: {} } };
 }
 function emit(o: PipelineOptions, p: GenerationProgress) { if (o.onProgress) try { o.onProgress(p); } catch { /* */ } }

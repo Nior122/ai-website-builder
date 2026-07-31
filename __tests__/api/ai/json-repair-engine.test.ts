@@ -12,7 +12,7 @@ describe('JSON Repair Engine', () => {
   it('repairs truncated objects', () => { const r = repairAndParse('{"a":1'); expect(r.success).toBe(true); expect(r.data).toEqual({a:1}); });
   it('repairs deeply nested truncation', () => { const r = repairAndParse('{"outer":{"inner":{"a":1}'); expect(r.success).toBe(true); expect(r.data).toEqual({outer:{inner:{a:1}}}); });
   it('extracts JSON from surrounding text', () => { const r = repairAndParse('Here: {"b":{"n":"Acme"}}\nThanks!'); expect(r.success).toBe(true); expect(r.data).toEqual({b:{n:'Acme'}}); });
-  it('fixes smart quotes', () => { const r = repairAndParse('{"n":"\u201CTest\u201D"}'); expect(r.success).toBe(true); expect(r.data).toEqual({n:'Test'}); });
+  it('fixes smart quotes used as delimiters', () => { const r = repairAndParse('{"n":\u201CTest\u201D}'); expect(r.success).toBe(true); expect(r.data).toEqual({n:'Test'}); });
   it('fixes single quotes', () => { const r = repairAndParse("{'a':'b'}"); expect(r.success).toBe(true); expect(r.data).toEqual({a:'b'}); });
   it('removes duplicate commas', () => { const r = repairAndParse('{"a":1,, "b":2}'); expect(r.success).toBe(true); expect(r.data).toEqual({a:1,b:2}); });
   it('repairs unquoted property names', () => { const r = repairAndParse('{a:1}'); expect(r.success).toBe(true); expect(r.data).toEqual({a:1}); });

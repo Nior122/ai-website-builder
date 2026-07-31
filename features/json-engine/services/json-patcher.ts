@@ -310,9 +310,11 @@ export function addContentArrayItem<T>(
   arrayPath: string,
   item: T
 ): Section {
-  const current = getSectionContent(section, arrayPath) as T[] | undefined;
-  const updated = [...(current ?? []), item];
-  return setSectionContent(section, arrayPath, updated);
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) {
+    return setSectionContent(section, arrayPath, [item]);
+  }
+  return setSectionContent(section, arrayPath, [...current, item]);
 }
 
 /**
@@ -323,9 +325,9 @@ export function removeContentArrayItem(
   arrayPath: string,
   index: number
 ): Section {
-  const current = getSectionContent(section, arrayPath) as unknown[] | undefined;
-  if (!current) return section;
-  const updated = [...current.slice(0, index), ...current.slice(index + 1)];
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) return section;
+  const updated = current.filter((_: unknown, i: number) => i !== index);
   return setSectionContent(section, arrayPath, updated);
 }
 
@@ -338,9 +340,8 @@ export function updateContentArrayItem<T>(
   index: number,
   item: T
 ): Section {
-  const current = getSectionContent(section, arrayPath) as T[] | undefined;
-  if (!current) return section;
-  const updated = [...current];
-  updated[index] = item;
+  const current = getSectionContent(section, arrayPath);
+  if (!Array.isArray(current)) return section;
+  const updated = current.map((_: unknown, i: number) => (i === index ? item : _));
   return setSectionContent(section, arrayPath, updated);
 }
