@@ -52,6 +52,8 @@ const APP_HOSTNAMES = new Set(
     process.env.VERCEL_URL,         // auto-set by Vercel (e.g. "ai-website-builder-studio-abc123.vercel.app")
     'localhost:3000',
     'localhost',
+    '127.0.0.1:3000',
+    '127.0.0.1',
   ].filter(Boolean) as string[]
 );
 

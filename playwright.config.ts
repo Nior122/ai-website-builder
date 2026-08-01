@@ -26,7 +26,10 @@ export default defineConfig({
   reporter: CI ? [['github'], ['html', { open: 'never' }]] : 'html',
 
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
+    // IP literal, not 'localhost': headless Chromium on runners/sandboxes
+    // can fail to resolve localhost (IPv6-first /etc/hosts + broken IPv6)
+    // with ERR_NAME_NOT_RESOLVED, while IP literals bypass DNS entirely.
+    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: CI ? 'retain-on-failure' : 'off',
@@ -50,8 +53,8 @@ export default defineConfig({
   // `npm run build && npm run start` keeps CI self-contained (no artifact
   // sharing between jobs).
   webServer: {
-    command: 'npm run build && npm run start',
-    url: 'http://localhost:3000',
+    command: 'npm run build && npm run start -H 127.0.0.1',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: !CI,
     timeout: 300_000,
     env: {
