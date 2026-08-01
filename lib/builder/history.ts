@@ -15,53 +15,55 @@ interface Snapshot {
 }
 
 export class HistoryStack {
-  private undoStack: Snapshot[] = [];
-  private redoStack: Snapshot[] = [];
+  private states: Snapshot[] = [];
+  private index = -1;
 
   constructor(private readonly limit = 50) {}
 
-  /** Push the PREVIOUS state so the user can undo back to it. */
+  /**
+   * Push a state onto the timeline. States pushed while a redo branch exists
+   * discard that branch (standard linear history). Undo/redo move an index,
+   * so every snapshot is immutable and reusable.
+   */
   push(project: BuilderProject, label: string): void {
-    const snapshot: Snapshot = {
+    this.states = this.states.slice(0, this.index + 1);
+    this.states.push({
       entry: { id: nanoid(), label, createdAt: Date.now() },
       project: cloneProject(project),
-    };
-    this.undoStack.push(snapshot);
-    if (this.undoStack.length > this.limit) {
-      this.undoStack.shift();
+    });
+    if (this.states.length > this.limit) {
+      this.states.shift();
     }
-    this.redoStack = [];
+    this.index = this.states.length - 1;
   }
 
   undo(): BuilderProject | null {
-    const snapshot = this.undoStack.pop();
-    if (!snapshot) return null;
-    this.redoStack.push(snapshot);
-    return cloneProject(snapshot.project);
+    if (this.index <= 0) return null;
+    this.index -= 1;
+    return cloneProject(this.states[this.index].project);
   }
 
   redo(): BuilderProject | null {
-    const snapshot = this.redoStack.pop();
-    if (!snapshot) return null;
-    this.undoStack.push(snapshot);
-    return cloneProject(snapshot.project);
+    if (this.index >= this.states.length - 1) return null;
+    this.index += 1;
+    return cloneProject(this.states[this.index].project);
   }
 
   list(): HistoryEntry[] {
-    return this.undoStack.map((snapshot) => snapshot.entry);
+    return this.states.slice(0, this.index + 1).map((snapshot) => snapshot.entry);
   }
 
   canUndo(): boolean {
-    return this.undoStack.length > 0;
+    return this.index > 0;
   }
 
   canRedo(): boolean {
-    return this.redoStack.length > 0;
+    return this.index < this.states.length - 1;
   }
 
   clear(): void {
-    this.undoStack = [];
-    this.redoStack = [];
+    this.states = [];
+    this.index = -1;
   }
 }
 

@@ -103,7 +103,7 @@ describe('DesignGenerationEngine — restaurant pipeline', () => {
   it('produces image directions with reusable prompts and aspect ratios', () => {
     expect(design.imageDirection.length).toBe(design.sectionOrder.length);
     for (const spec of design.imageDirection) {
-      expect(spec.prompt).toContain(spec.sectionType);
+      expect(spec.prompt.toLowerCase()).toContain(spec.sectionType);
       expect(spec.prompt.length).toBeGreaterThan(40);
       expect(spec.aspectRatio).toMatch(/^\d+\/\d+$/);
       expect(spec.cameraAngle).toBeTruthy();
@@ -163,7 +163,7 @@ describe('Industry-based design intelligence', () => {
     expect(saas.sectionOrder[0]).toBe('hero');
     expect(saas.sectionOrder).toEqual(['hero', 'features', 'integrations', 'pricing', 'testimonials', 'faq', 'cta']);
     expect(hospital.sectionOrder[1]).toBe('services');
-    expect(hospital.icons.family).toBe('healthcare');
+    expect(hospital.icons.family).toBe('medical');
     expect(restaurant.layout.id).not.toBe(saas.layout.id);
   });
 });

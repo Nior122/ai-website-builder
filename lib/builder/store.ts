@@ -8,7 +8,7 @@
 
 import type { BuilderProject, HistoryEntry } from './types';
 import { HistoryStack, cloneProject } from './history';
-import { AutosaveManager } from './autosave';
+import type { AutosaveManager } from './autosave';
 
 export interface BuilderSessionOptions {
   historyLimit?: number;
@@ -38,6 +38,7 @@ export class BuilderSession {
     this.history.push(this.current, label);
     this.current = mutator(this.current);
     this.current = { ...this.current, updatedAt: Date.now(), version: this.current.version + 1 };
+    this.history.push(this.current, label);
     this.autosave?.schedule(this.current);
     return this.project;
   }
@@ -63,7 +64,10 @@ export class BuilderSession {
   }
 
   historyList(): HistoryEntry[] {
-    return this.history.list();
+    const entries = this.history.list();
+    // Each apply() records a pre-edit and post-edit state; present them as
+    // one entry per edit.
+    return entries.filter((entry, index) => index === 0 || entry.label !== entries[index - 1].label);
   }
 
   async saveNow(): Promise<BuilderProject | null> {

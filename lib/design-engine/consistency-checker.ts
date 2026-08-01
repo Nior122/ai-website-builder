@@ -107,10 +107,13 @@ export function checkDesignConsistency(design: DesignSystem): ConsistencyReport 
     }
   }
 
-  // 5. Section spacing: consistent per responsive rules.
-  const sectionSpacings = new Set(Object.values(design.responsive.spacing));
-  if (sectionSpacings.size > 3) {
-    issues.push({ dimension: 'section-spacing', severity: 'warning', message: 'Section spacing varies too much across breakpoints.', repaired: false });
+  // 5. Section spacing: one scale across breakpoints — monotonic desktop→mobile
+  //    with a bounded range (values naturally shrink on smaller screens).
+  const spacingValues = Object.values(design.responsive.spacing);
+  const monotonic = spacingValues.every((value, index) => index === 0 || spacingValues[index - 1] >= value);
+  const spacingRange = Math.max(...spacingValues) - Math.min(...spacingValues);
+  if (!monotonic || spacingRange > 64) {
+    issues.push({ dimension: 'section-spacing', severity: 'warning', message: 'Section spacing is not a consistent scale across breakpoints.', repaired: false });
   }
 
   return { passed: issues.length === 0, issues };
@@ -182,7 +185,6 @@ export function repairConsistency(design: DesignSystem): { design: DesignSystem;
     repairs.push({ dimension: 'radius', severity: 'warning', message: `Unified all component radii to "${modalRadius}".`, repaired: true });
   }
 
-  const repairedReport = checkDesignConsistency(next);
   return { design: next, repairs: repairs.length > 0 ? repairs : [...report.issues] };
 }
 

@@ -85,15 +85,46 @@ export function buildThemeTokens(seed: string, options: ThemeGenerationOptions =
     },
     button: {
       background: primary,
-      text: textOn(primary, text),
+      text: textOn(primary),
       hover: shade(primary, -0.08),
     },
   };
 
   if (options.ensureContrast ?? true) {
-    return ensureThemeContrast(tokens);
+    return ensurePrimaryAa(ensureThemeContrast(tokens));
   }
   return tokens;
+}
+
+/**
+ * Ensure the primary color can carry AA-compliant text (4.5:1). Some hues
+ * (e.g. mid-tone blues) fail with both white and dark text; darken the
+ * primary in small steps until white text passes — the same move a designer
+ * makes moving from blue-500 to blue-600. Updates button, hover, and focus
+ * states to stay in sync.
+ */
+export function ensurePrimaryAa(tokens: ThemeTokens): ThemeTokens {
+  let primary = tokens.primary;
+  let hover = tokens.hover.primary;
+  let focus = tokens.focus.primary;
+  let buttonText = tokens.button.text;
+  for (let step = 0; step < 4; step += 1) {
+    const candidate = textOn(primary);
+    if (passesAAContrast(candidate, primary)) {
+      buttonText = candidate;
+      break;
+    }
+    primary = shade(primary, -0.05);
+    hover = shade(primary, -0.08);
+    focus = shade(primary, 0.06);
+  }
+  return {
+    ...tokens,
+    primary,
+    hover: { ...tokens.hover, primary: hover },
+    focus: { primary: focus },
+    button: { ...tokens.button, background: primary, text: buttonText, hover },
+  };
 }
 
 /** Pick a readable text color for a given background (black/white by luminance). */

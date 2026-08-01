@@ -10,7 +10,9 @@ import { nanoid } from 'nanoid';
 import type { BuilderProject, FormConfig, FormField, FormKind } from './types';
 
 function field(label: string, type: FormField['type'], required: boolean, options?: string[]): FormField {
-  return { id: nanoid(), label, type, required, options };
+  // Stable id derived from the label so submissions can match fields by name.
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return { id, label, type, required, options };
 }
 
 const FORM_TEMPLATES: Record<FormKind, Omit<FormConfig, 'id'>> = {

@@ -22,27 +22,31 @@ export class QaAgent extends Agent {
 
     const checks: AgentCheck[] = [];
 
+    const pages = ux?.pages ?? [];
+    const components = ui?.components ?? [];
+    const blocks = copy?.blocks ?? [];
+
     checks.push({
       rule: 'qa.pages',
-      passed: (ux?.pages.length ?? 0) > 0,
-      message: (ux?.pages.length ?? 0) > 0
-        ? `${ux.pages.length} pages planned: ${ux.pages.map((p) => p.slug).join(', ')}.`
+      passed: pages.length > 0,
+      message: pages.length > 0
+        ? `${pages.length} pages planned: ${pages.map((p) => p.slug).join(', ')}.`
         : 'No pages planned.',
     });
 
     checks.push({
       rule: 'qa.sections',
-      passed: (ui?.components.length ?? 0) > 0,
-      message: (ui?.components.length ?? 0) > 0
-        ? `${ui.components.length} section components defined.`
+      passed: components.length > 0,
+      message: components.length > 0
+        ? `${components.length} section components defined.`
         : 'No section components defined.',
     });
 
     checks.push({
       rule: 'qa.copy',
-      passed: (copy?.blocks.length ?? 0) > 0,
-      message: (copy?.blocks.length ?? 0) > 0
-        ? `${copy.blocks.length} copy blocks generated.`
+      passed: blocks.length > 0,
+      message: blocks.length > 0
+        ? `${blocks.length} copy blocks generated.`
         : 'No copy generated.',
     });
 

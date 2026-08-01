@@ -74,8 +74,37 @@ function applyTargetedRepairs(
             if (['divider', 'spacer', 'custom-html'].includes(section.type)) continue;
             const weak = !Object.values(section.content).some((value) => typeof value === 'string' && value.trim().length > 0);
             if (weak) {
-              next = updateSectionContent(next, page.id, section.id, defaultSection(section.type, section.order).content);
+              const updatedPage = updateSectionContent(page, section.id, defaultSection(section.type, section.order).content);
+              next = { ...next, pages: next.pages.map((p) => (p.id === page.id ? updatedPage : p)) };
               repaired.push(`content:${section.type} filled`);
+            }
+          }
+        }
+        break;
+      }
+      case 'theme.spacing': {
+        next = {
+          ...next,
+          theme: {
+            ...next.theme,
+            tokens: {
+              ...(next.theme.tokens as Record<string, unknown>),
+              spacing: { '0': 0, '1': 4, '2': 8, '3': 12, '4': 16, '5': 20, '6': 24, '7': 28, '8': 32, '10': 40, '12': 48, '14': 56, '16': 64 },
+            },
+          },
+        };
+        repaired.push('theme:spacing rebuilt on the 4px scale');
+        break;
+      }
+      case 'content.buttons': {
+        for (const page of next.pages) {
+          for (const section of page.sections) {
+            const content = section.content as Record<string, unknown>;
+            const needsLink = content.ctaText !== undefined && !(typeof content.ctaLink === 'string' && content.ctaLink.length > 0);
+            if (needsLink) {
+              const updatedPage = updateSectionContent(page, section.id, { ...content, ctaLink: '/contact' });
+              next = { ...next, pages: next.pages.map((p) => (p.id === page.id ? updatedPage : p)) };
+              repaired.push(`content:${section.type} cta link assigned`);
             }
           }
         }

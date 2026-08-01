@@ -188,11 +188,11 @@ describe('Agent Memory', () => {
   it('captures project facts', () => {
     const memory = new AgentMemory();
     memory.rememberProject(makeTestProject('Acme'));
-    expect(memory.businessName).toBe('Acme');
-    expect(memory.fonts).toBeDefined();
-    expect(memory.colors).toBeDefined();
-    expect(memory.pages).toContain('home');
-    expect(memory.sectionCount).toBeGreaterThan(0);
+    expect(memory.recall('businessName')).toBe('Acme');
+    expect(memory.recall('fonts')).toBeDefined();
+    expect(memory.recall('colors')).toBeDefined();
+    expect(memory.recall('pages')).toContain('home');
+    expect(memory.recall('sectionCount')).toBeGreaterThan(0);
   });
 });
 

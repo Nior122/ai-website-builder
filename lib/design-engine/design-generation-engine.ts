@@ -212,6 +212,9 @@ export function buildProjectTokens(design: DesignSystem): Record<string, unknown
     },
     style: {
       animation: design.industry.animationStyle,
+      button: 'solid',
+      card: 'elevated',
+      icon: 'outline-1.5',
       iconFamily: design.icons.family,
       animationStyle: design.industry.animationStyle,
       imageStyle: design.industry.imageStyle,

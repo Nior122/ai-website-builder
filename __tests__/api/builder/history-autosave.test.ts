@@ -22,7 +22,8 @@ describe('History Stack', () => {
 
     const undone = stack.undo();
     expect(undone?.name).toBe(project.name);
-    expect(stack.canUndo()).toBe(true);
+    // Two states pushed, one undo step taken — the timeline is at its start.
+    expect(stack.canUndo()).toBe(false);
     expect(stack.canRedo()).toBe(true);
 
     const redone = stack.redo();

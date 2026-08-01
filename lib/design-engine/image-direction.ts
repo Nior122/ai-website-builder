@@ -91,7 +91,7 @@ export function buildImageDirection(sectionOrder: string[], profile: IndustryPro
       mood: styleProfile.mood,
       colorGrading: styleProfile.colorGrading,
       style: styleProfile.style,
-      prompt: `${businessName} — ${plan.purpose.toLowerCase()}. ${plan.composition}. ${plan.angle} camera. ${styleProfile.lighting}. ${styleProfile.mood} mood. ${styleProfile.colorGrading}. ${styleProfile.style}.`,
+      prompt: `${businessName} — ${titleCase(sectionType)} section: ${plan.purpose.toLowerCase()}. ${plan.composition}. ${plan.angle} camera. ${styleProfile.lighting}. ${styleProfile.mood} mood. ${styleProfile.colorGrading}. ${styleProfile.style}.`,
       aspectRatio: plan.ratio,
     };
   });

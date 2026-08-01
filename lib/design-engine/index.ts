@@ -16,7 +16,7 @@ export {
 } from './design-generation-engine';
 
 export { classifyIndustry, findIndustry, listIndustries, industryLabel, INDUSTRY_PROFILES } from './industry-profiles';
-export { buildThemeTokens, ensureThemeContrast, textOn, themeToDesignTokens, listThemeTokens } from './theme-generator';
+export { buildThemeTokens, ensureThemeContrast, ensurePrimaryAa, textOn, themeToDesignTokens, listThemeTokens } from './theme-generator';
 export { buildTypographySystem, getFontPair, isPremiumFont, googleFontsUrl, FONT_PAIRS, FONT_STYLES } from './typography-engine';
 export { selectLayout, getLayoutPattern, listLayouts, LAYOUT_PATTERNS } from './layout-engine';
 export { generateComponents, getComponentVariants, listComponentTypes, COMPONENT_TYPES, COMPONENT_VARIANTS } from './component-generator';

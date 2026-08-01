@@ -113,7 +113,7 @@ export function reviewDesign(design: DesignSystem, maxCycles = 5): DesignScore {
  */
 export function reviseDesign(design: DesignSystem, criteria: DesignReviewCriteria): DesignSystem {
   const next = cloneDesign(design);
-  const weaknesses: Array<[keyof DesignReviewCriteria, number]> = REVIEW_CRITERIA.map((c) => [c, criteria[c]]).filter(([, score]) => score < 9).sort((a, b) => a[1] - b[1]);
+  const weaknesses: Array<[keyof DesignReviewCriteria, number]> = REVIEW_CRITERIA.map((c): [keyof DesignReviewCriteria, number] => [c, criteria[c]]).filter(([, score]) => score < 9).sort((a, b) => a[1] - b[1]);
   if (weaknesses.length === 0) {
     return next;
   }

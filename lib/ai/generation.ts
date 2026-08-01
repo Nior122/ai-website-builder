@@ -9,7 +9,7 @@ import { getModelManager } from './model-manager';
 import prisma from '@/lib/prisma/client';
 import { AIGenerationError, NotFoundError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
-import type { GenerateRequest } from '@/types';
+import type { GenerateRequest, Theme } from '@/types';
 import type { GenerationProgress, AIGenerationResult, AIProjectOutput } from '@/features/ai-engine/types';
 import { nanoid } from 'nanoid';
 
@@ -32,7 +32,7 @@ export async function generateWithClaude(
     callbacks.onProgress({ phase: 'analyzing', message: 'Setting up project...', progress: 5, pagesGenerated: 0, totalPages, currentSection: null });
     let projectId = request.projectId;
     if (!projectId) {
-      const project = await createProject({ name: request.businessName || `${request.industry} Website`, description: request.description, industry: request.industry, businessType: request.businessType, ownerId: dbUserId, settings: getDefaultProjectSettings() });
+      const project = await createProject({ name: request.businessName || `${request.industry} Website`, description: request.description, industry: request.industry, businessType: request.businessType, ownerId: dbUserId });
       projectId = project.id;
       logger.info(`Created project: ${projectId}`, LOG);
     }
@@ -48,7 +48,7 @@ export async function generateWithClaude(
     callbacks.onComplete({
       projectId,
       pages: savedPages.map(p => ({ slug: p.slug, title: p.title, metaTitle: p.metaTitle || p.title, metaDescription: p.metaDescription || '', isHome: p.isHome, sections: (p.sections || []).map((s: any) => ({ type: s.type, layout: s.layout || 'default', content: s.content || {}, styles: s.styles || {}, animations: s.animations || [], images: s.images || [] })) })),
-      theme: pipelineResult.data.theme || {},
+      theme: (pipelineResult.data.theme ?? {}) as unknown as Theme,
       colorPalette: (pipelineResult.data.theme as any)?.colors || {},
       generatedAt: new Date().toISOString(),
     });
@@ -72,7 +72,7 @@ async function savePagesAndSections(projectId: string, data: AIProjectOutput) {
       await prisma.section.create({ data: { id: sectionId, pageId, type: sectionData.type, layout: sectionData.layout || 'default', content: (sectionData.content || {}) as any, styles: (sectionData.styles || {}) as any, animations: (sectionData.animations || []) as any, images: (sectionData.images || []) as any, order: j } });
       savedSections.push({ id: sectionId, type: sectionData.type, layout: sectionData.layout, content: sectionData.content, styles: sectionData.styles, animations: sectionData.animations, images: sectionData.images });
     }
-    savedPages.push({ id: pageId, slug: page.slug, title: page.title, metaTitle: page.metaTitle, metaDescription: page.metaDescription, isHome: page.isHome, sections: savedSections });
+    savedPages.push({ id: pageId, slug: page.slug, title: page.title, metaTitle: page.metaTitle || '', metaDescription: page.metaDescription || '', isHome: page.isHome, sections: savedSections });
   }
   return savedPages;
 }

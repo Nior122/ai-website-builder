@@ -60,7 +60,7 @@ function buildAnimation(name: string, rule: AnimationStyleRule, durationScale = 
     'image-zoom': 350,
   };
   const trigger: AnimationSpec['trigger'] = ['hover-lift', 'image-zoom'].includes(name) ? 'on-hover' : name === 'hero' ? 'on-load' : 'on-scroll';
-  const restraint = name === 'hero' || name === 'fade' ? rule.restraint : rule.restraint === 'subtle' ? 'subtle' : rule.restraint === 'playful' || rule.restraint === 'punchy' ? 'moderate' : 'subtle';
+  const restraint: AnimationSpec['restraint'] = name === 'hero' || name === 'fade' ? rule.restraint : rule.restraint === 'playful' ? 'moderate' : 'subtle';
   return {
     name,
     durationMs: Math.round((durations[name] ?? rule.baseDurationMs) * durationScale),
