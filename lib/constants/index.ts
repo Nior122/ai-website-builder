@@ -427,7 +427,7 @@ export const DEPLOY_PLATFORMS = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const RATE_LIMITS = {
-  anonymous: { requests: 10, windowMs: 60_000 },
+  anonymous: { requests: 100, windowMs: 60_000 },
   free: { requests: 60, windowMs: 60_000 },
   pro: { requests: 300, windowMs: 60_000 },
   enterprise: { requests: 1000, windowMs: 60_000 },
