@@ -53,7 +53,7 @@ export default defineConfig({
   // `npm run build && npm run start` keeps CI self-contained (no artifact
   // sharing between jobs).
   webServer: {
-    command: 'npm run build && npm run start -H 127.0.0.1',
+    command: 'npm run build && npm run start -- -H 127.0.0.1',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !CI,
     timeout: 300_000,
