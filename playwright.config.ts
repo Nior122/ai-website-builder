@@ -35,17 +35,25 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Force IPv4 loopback: on runners without working IPv6 (GitHub
+        // Actions, some sandboxes) Chromium resolves localhost to ::1 and
+        // fails with ERR_NAME_NOT_RESOLVED instead of falling back.
+        launchOptions: { args: ['--host-resolver-rules=MAP localhost 127.0.0.1'] },
+      },
     },
   ],
 
-  // Start the dev server before running tests — including CI. Previously the
-  // server was only started locally, so CI tests always hit ECONNREFUSED.
+  // Serve the PRODUCTION build for tests — the dev server is too flaky for
+  // E2E (cold compiles, dev-only 500 pages) and its health check needs a 2xx.
+  // `npm run build && npm run start` keeps CI self-contained (no artifact
+  // sharing between jobs).
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !CI,
-    timeout: 120_000,
+    timeout: 300_000,
     env: {
       ...process.env,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: VALID_TEST_PUBLISHABLE_KEY,
