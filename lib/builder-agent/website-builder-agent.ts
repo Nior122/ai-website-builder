@@ -32,6 +32,7 @@ import {
   type BuilderProject,
 } from '@/lib/builder';
 import { AgentMemory } from './memory';
+import { DesignGenerationEngine, applyDesignSystemToProject } from '@/lib/design-engine';
 import { BuilderStateMachine } from './state-machine';
 import { computeQualityScores } from './quality-scorer';
 import { validateWebsite } from './self-validation';
@@ -83,6 +84,7 @@ export class WebsiteBuilderAgent {
   private readonly state: BuilderStateMachine;
   private readonly agents?: Agent[];
   private readonly maxRepairCycles: number;
+  private readonly designEngine = new DesignGenerationEngine();
 
   constructor(options: WebsiteBuilderAgentOptions = {}) {
     this.state = new BuilderStateMachine(options.onProgress);
@@ -117,9 +119,20 @@ export class WebsiteBuilderAgent {
         })
       );
 
-      // ── Branding ────────────────────────────────────────────────────
+      // ── Branding + Design System (Phase 6) ─────────────────────────
       this.state.transition('branding', 'Finalizing brand identity and theme...');
-      this.memory.rememberProject(workflow.project);
+      this.state.transition('branding', 'Generating the design system...');
+      const design = await this.runStage('design-system', () => this.designEngine.generateDesignSystem(brief));
+      const designedProject = applyDesignSystemToProject(workflow.project, design);
+      this.memory.rememberProject(designedProject);
+      this.memory.remember('designScore', design.score.overall);
+      this.memory.remember('designSystem', {
+        industry: design.industry.label,
+        layout: design.layout.id,
+        fonts: `${design.typography.headingFont} / ${design.typography.bodyFont}`,
+        primary: design.theme.primary,
+        reviewCycles: design.score.reviewCycles,
+      });
 
       this.state.transition('generating-pages', 'Generating pages...');
       this.state.transition('generating-sections', 'Generating sections...');
@@ -129,7 +142,7 @@ export class WebsiteBuilderAgent {
       // ── Optimizing / Validating / Repairing ─────────────────────────
       this.state.transition('optimizing', 'Optimizing the website...');
       const repair = await this.runStage('repair-cycles', async () =>
-        repairUntilValid(workflow.project, {
+        repairUntilValid(designedProject, {
           maxCycles: this.maxRepairCycles,
           onCycle: (cycle, repaired) =>
             logger.info(`Repair cycle ${cycle}: ${repaired.join(', ') || 'no targeted repairs'}`, LOG),
