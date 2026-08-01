@@ -23,7 +23,7 @@ export default defineConfig({
   forbidOnly: CI,
   retries: CI ? 2 : 0,
   workers: CI ? 1 : undefined,
-  reporter: CI ? 'github' : 'html',
+  reporter: CI ? [['github'], ['html', { open: 'never' }]] : 'html',
 
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
