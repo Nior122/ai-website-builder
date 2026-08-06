@@ -7,6 +7,31 @@
 // =============================================================================
 
 import { test, expect } from '@playwright/test';
+import { createClient } from 'redis';
+
+/**
+ * The burst test intentionally exhausts the anonymous window; sweep the
+ * rate-limit keys afterwards so later tests are not throttled.
+ */
+async function sweepRateLimitKeys(): Promise<void> {
+  const url = process.env.REDIS_URL;
+  if (!url) return;
+  const client = createClient({ url });
+  try {
+    await client.connect();
+    const keys: string[] = [];
+    for await (const key of client.scanIterator({ MATCH: 'ratelimit:*' })) {
+      keys.push(key);
+    }
+    if (keys.length > 0) {
+      await client.del(keys);
+    }
+  } catch {
+    // Redis may be unavailable — nothing to sweep.
+  } finally {
+    await client.quit().catch(() => undefined);
+  }
+}
 
 test.describe('Rate limit headers', () => {
   test('templates (anonymous tier) emits X-RateLimit-Limit / Remaining / Reset', async ({ request }) => {
@@ -38,6 +63,9 @@ test.describe('Rate limit headers', () => {
 });
 
 test.describe('Anonymous tier throttling', () => {
+  test.afterEach(async () => {
+    await sweepRateLimitKeys();
+  });
   // The anonymous tier is configured to a finite per-minute cap. We fire a
   // burst well above it and assert that we eventually receive a 429 with a
   // Retry-After header. This guards against regressions where a route loses

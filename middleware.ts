@@ -41,7 +41,6 @@ const isProtectedRoute = createRouteMatcher([
   '/api/storage(.*)',
   '/api/stripe(.*)',
   '/api/admin(.*)',
-  '/api/analytics(.*)',
 ]);
 
 // ─── Custom Domain Detection ────────────────────────────────────────────
@@ -53,8 +52,47 @@ const APP_HOSTNAMES = new Set(
     process.env.VERCEL_URL,         // auto-set by Vercel (e.g. "ai-website-builder-studio-abc123.vercel.app")
     'localhost:3000',
     'localhost',
+    '127.0.0.1:3000',
+    '127.0.0.1',
   ].filter(Boolean) as string[]
 );
+
+function withStandardHeaders(target: NextResponse, pathname: string): NextResponse {
+  // Request ID for distributed tracing — same req_<hex> format used by
+  // route-level withRequestLogging, so every response carries one style.
+  // Edge-safe: Web Crypto, no node crypto imports.
+  const requestIdBytes = crypto.getRandomValues(new Uint8Array(8));
+  const requestIdHex = Array.from(requestIdBytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+  target.headers.set('X-Request-Id', `req_${requestIdHex}`);
+
+  // ─── Security Headers ────────────────────────────────────────────────
+  target.headers.set('X-Content-Type-Options', 'nosniff');
+  target.headers.set('X-Frame-Options', 'DENY');
+  target.headers.set('X-XSS-Protection', '1; mode=block');
+  target.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  target.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  target.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https://images.unsplash.com https://*.amazonaws.com https://*.blob.core.windows.net https://img.clerk.com https://*.clerk.accounts.dev",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://api.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com wss://*.clerk.com wss://*.clerk.accounts.dev",
+      "frame-src 'self' https://js.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+    ].join('; ')
+  );
+
+  // ─── Caching ─────────────────────────────────────────────────────────
+  if (pathname.startsWith('/api/')) {
+    target.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  }
+  if (pathname.startsWith('/_next/static/') || pathname.startsWith('/assets/')) {
+    target.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  return target;
+}
 
 // ─── Middleware ─────────────────────────────────────────────────────────
 export default clerkMiddleware(async (auth, req) => {
@@ -88,42 +126,31 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  // Auth check for protected routes (skip if explicitly public)
+  // Auth check for protected routes (skip if explicitly public). API
+  // requests get an explicit 401 JSON — this Clerk version answers
+  // unauthenticated API requests with 404 (notFound), which breaks the
+  // documented API contract. Page routes keep Clerk's sign-in redirect.
   if (isProtectedRoute(req) && !isPublicRoute(req)) {
-    await auth.protect();
+    if (pathname.startsWith('/api/')) {
+      const { userId } = await auth();
+      if (!userId) {
+        return withStandardHeaders(
+          NextResponse.json(
+            {
+              success: false,
+              error: { code: 'UNAUTHORIZED', message: 'Authentication required', timestamp: new Date().toISOString() },
+            },
+            { status: 401 }
+          ),
+          pathname
+        );
+      }
+    } else {
+      await auth.protect();
+    }
   }
 
-  // Request ID for distributed tracing
-  response.headers.set('X-Request-Id', crypto.randomUUID());
-
-  // ─── Security Headers ────────────────────────────────────────────────
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  response.headers.set(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://images.unsplash.com https://*.amazonaws.com https://*.blob.core.windows.net https://img.clerk.com https://*.clerk.accounts.dev",
-      "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://api.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com wss://*.clerk.com wss://*.clerk.accounts.dev",
-      "frame-src 'self' https://js.stripe.com https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
-    ].join('; ')
-  );
-
-  // ─── Caching ─────────────────────────────────────────────────────────
-  if (pathname.startsWith('/api/')) {
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  }
-  if (pathname.startsWith('/_next/static/') || pathname.startsWith('/assets/')) {
-    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-  }
-
-  return response;
+  return withStandardHeaders(response, pathname);
 });
 
 // ─── Matcher ────────────────────────────────────────────────────────────

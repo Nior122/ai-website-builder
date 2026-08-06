@@ -50,7 +50,7 @@ export async function generateWithClaude(
     callbacks.onComplete({
       projectId,
       pages: savedPages.map(p => ({ slug: p.slug, title: p.title, metaTitle: p.metaTitle || p.title, metaDescription: p.metaDescription || '', isHome: p.isHome, sections: (p.sections || []).map((s: any) => ({ type: s.type, layout: s.layout || 'default', content: s.content || {}, styles: s.styles || {}, animations: s.animations || [], images: s.images || [] })) })),
-      theme: (pipelineResult.data.theme || {}) as unknown as Theme,
+      theme: (pipelineResult.data.theme ?? {}) as unknown as Theme,
       colorPalette: (pipelineResult.data.theme as any)?.colors || {},
       generatedAt: new Date().toISOString(),
     });

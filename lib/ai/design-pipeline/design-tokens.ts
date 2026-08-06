@@ -104,8 +104,10 @@ export function deriveHue(seed: string, anchor: string, t: number): string {
 // ─── Scales ─────────────────────────────────────────────────────────────
 
 export function buildSpacingScale(base = 4): Record<string, number> {
-  const keys = ['0', '0.5', '1', '1.5', '2', '3', '4', '5', '6', '8', '10', '12', '16'];
-  const values = [0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 16];
+  // Clean 4px rhythm (0..16 units) so every value is divisible by 4 — the
+  // design system and validator rely on a strict 4px spacing scale.
+  const keys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '10', '12', '14', '16'];
+  const values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16];
   const scale: Record<string, number> = {};
   keys.forEach((key, i) => {
     scale[key] = values[i] * base;

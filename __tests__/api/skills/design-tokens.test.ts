@@ -54,7 +54,7 @@ describe('Design Tokens', () => {
     expect(tokens.colors.primary).toBe('#2563eb');
     expect(tokens.colors.background).toBe('#ffffff');
     expect(tokens.colors.text).toBe('#0f172a');
-    expect(Object.keys(tokens.primaryShades)).toHaveLength(10);
+    expect(Object.keys(tokens.primaryShades)).toHaveLength(11);
     expect(tokens.spacing['1']).toBe(4);
     expect(tokens.spacing['4']).toBe(16);
     expect(tokens.radius.md).toBe('12px');
