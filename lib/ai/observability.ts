@@ -2,7 +2,7 @@
 // AI Generation Observability — v2
 // =============================================================================
 import { logger } from '@/lib/logger';
-export type GenerationStage = 'brand'|'theme'|'pages'|'sections'|'seo'|'images'|'refinement'|'merge'|'save';
+export type GenerationStage = 'analyze'|'brand'|'design'|'theme'|'pages'|'sections'|'seo'|'images'|'validate'|'refinement'|'merge'|'save';
 export type StageStatus = 'started'|'retrying'|'completed'|'failed'|'skipped';
 export interface StageLog { stage: GenerationStage; status: StageStatus; message: string; durationMs?: number; attempt?: number; model?: string; provider?: string; tokensUsed?: {input:number;output:number}; repairsApplied?: number; validationPassed?: boolean; defaultsInjected?: number; error?: string; }
 const BC = { service: 'ai-generation' };

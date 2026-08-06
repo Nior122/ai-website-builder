@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { getDefaultValue, getDefaultBrand, getDefaultTheme, getDefaultSEO, getDefaultSettings, getDefaultAnimations, getDefaultImages, needsDefault } from '@/lib/ai/defaults';
 describe('Defaults', () => {
-  it('brand defaults', () => { const b = getDefaultBrand(); expect(b.name).toBe('Untitled Business'); expect(b.colors.primary).toBe('#2563EB'); });
+  it('brand defaults', () => { const b = getDefaultBrand(); expect(b.name).toBe('Untitled Business'); expect((b.colors as Record<string, string>).primary).toBe('#2563EB'); });
   it('immutable across calls', () => { const b1 = getDefaultBrand(); const b2 = getDefaultBrand(); b1.name = 'X'; expect(b2.name).toBe('Untitled Business'); });
   it('theme defaults', () => { expect(getDefaultTheme().preset).toBe('professional'); });
   it('SEO with business name', () => { expect(getDefaultSEO('Acme').metaTitle).toContain('Acme'); });
